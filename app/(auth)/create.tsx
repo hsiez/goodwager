@@ -1,6 +1,27 @@
-import { View, Text, Pressable, Modal, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, Pressable, Modal, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { Ionicons } from '@expo/vector-icons';
 import React, {useState} from 'react';
 
+
+const styles = StyleSheet.create({
+  dropdownContainer: {
+    height: 40,
+    width: 75, // Set width to fit single digit number
+  },
+  dropdown: {
+    backgroundColor: '#fafafa',
+    borderColor: '#ccc',
+    borderWidth: 1,
+  },
+  dropdownItem: {
+    justifyContent: 'center', // Center the items in dropdown vertically
+  },
+  dropdownLabel: {
+    fontSize: 16, // Set font size as needed
+    textAlign: 'center', // Center the label text horizontally
+  },
+});
 
 const WagerAmountStepper = ({ amounts, selectedAmount, onAmountChange }) => {
   const increment = () => {
@@ -16,22 +37,39 @@ const WagerAmountStepper = ({ amounts, selectedAmount, onAmountChange }) => {
   };
 
   return (
-    <View className="flex-row justify-center items-center">
+    <View className="flex-row justify-center items-center pb-2">
       <TouchableOpacity onPress={decrement} className="p-2">
-        <Text className="text-4xl text-white">-</Text>
+        <Ionicons name="arrow-down-circle-outline" size={40} color={'#fff'} />
       </TouchableOpacity>
-      <Text className="text-4xl text-white mx-5">{`$${selectedAmount || 0}`}</Text>
+      <Text className="text-6xl text-white mx-5">{`$${selectedAmount}`}</Text>
       <TouchableOpacity onPress={increment} className="p-2">
-        <Text className="text-4xl text-white">+</Text>
+        <Ionicons name="arrow-up-circle-outline" size={40} color={'#fff'} selectionColor={''}/>
       </TouchableOpacity>
     </View>
   );
 };
 
 const CreateWager = () => {
-  const [selectedAmount, setSelectedAmount] = useState(null);
+
+  // State for wager amount
+  const [selectedAmount, setSelectedAmount] = useState(20);
+
+  // State for charity selection
   const [selectedCharity, setSelectedCharity] = useState(null);
-  const [selectedRestDays, setSelectedRestDays] = useState(0);
+  const [openCharity, setOpenCharity] = useState(false);
+  const [items, setItems] = useState([
+    {label: 'Charity 1', value: 'charity1'},
+    {label: 'Charity 2', value: 'charity2'},
+    {label: 'Charity 3', value: 'charity3'}
+  ]);
+
+  // State for workout days selection
+  const [openWorkout, setOpenWorkout] = useState(false);
+  const [workoutsPerWeek, setWorkoutsPerWeek] = useState(1); // default to 1 workout per week
+  const [workoutItems, setWorkoutItems] = useState(Array.from({ length: 7 }, (_, i) => ({
+    label: `${i + 1}`,
+    value: i + 1,
+  })));
   const [startDate, setStartDate] = useState(new Date());
   const endDate = new Date(startDate.getTime());
   endDate.setDate(endDate.getDate() + 30);
@@ -44,53 +82,56 @@ const CreateWager = () => {
     setSelectedCharity(charity);
   };
 
-  const handleRestDaysChange = (days) => {
-    setSelectedRestDays(days);
-  };
-
-  const renderRestDaysPicker = () => {
-  return Array.from({ length: 5 }, (_, i) => (
-    <TouchableOpacity key={i} onPress={() => handleRestDaysChange(i)} className={`p-2 ${selectedRestDays === i ? 'bg-blue-700' : 'bg-gray-300'}`}>
-      <Text className='text-white'>{i} days</Text>
-    </TouchableOpacity>
-  ));
-  };
   const amounts = [20, 50, 100, 200];
   const charities = ["Charity 1", "Charity 2", "Charity 3", "Charity 4", "Charity 5"]; 
   return(
     <View className='w-full h-full bg-neutral-900'>
       <View className='flex w-full justify-center items-center'>
         <View className='justify-start mt-10'>
-          <Text className='text-3xl text-gray-100 mb-10'>Create Wager</Text>
+          <Text className='text-3xl text-gray-100'>Create Wager</Text>
         </View>
       </View>
-      <View className="flex-1 justify-center items-center">
-        <View className="border-solid border-2 border-zinc-700 p-5 rounded-lg w-4/5">
+      <View className="flex-1 mt-20 items-center">
+        <View className="rounded-lg w-4/5">
           {/* Wager Amount Stepper */}
           <WagerAmountStepper 
             amounts={amounts} 
             selectedAmount={selectedAmount} 
             onAmountChange={setSelectedAmount} 
           />
-
+            
           {/* Charity Selection */}
-          <ScrollView className="max-h-50">
-            {charities.map((charity) => (
-              <TouchableOpacity key={charity} onPress={() => handleCharityPress(charity)}
-              className={`p-2 ${
-                selectedCharity === charity ? 'bg-blue-700 border-blue-500' : 'border-gray-300'
-              } border rounded my-1`}>
-                <Text className="text-lg text-white">{charity}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <DropDownPicker
+            open={openCharity}
+            value={selectedCharity}
+            items={items}
+            setOpen={setOpenCharity}
+            setValue={setSelectedCharity}
+            setItems={setItems}
+            theme="DARK"
+            placeholder="Select a Charity"
+          />
 
-          {/* Rest Days Selection */}
-          <View className="flex-row justify-around mb-5">
-            {renderRestDaysPicker()}
+          {/* Workout days Selection */}
+          <View className="flex-row mt-10 justify-between">
+            <View className="flex justify-center">
+              <Text className="text-lg text-white">Workouts per week:</Text>
+            </View>
+            <DropDownPicker
+              open={openWorkout}
+              value={workoutsPerWeek}
+              items={workoutItems}
+              setOpen={setOpenWorkout}
+              setValue={setWorkoutsPerWeek}
+              setItems={setWorkoutItems}
+              theme="DARK"
+              placeholder="0"
+              style={styles.dropdown}
+              containerStyle={styles.dropdownContainer}
+            />
+
           </View>
 
-          {/* Date Selection */}
           <Text className="mt-5 text-lg text-white">Start Date: {startDate.toDateString()}</Text>
           <Text className="text-lg text-white">End Date: {endDate.toDateString()}</Text>
         </View>
