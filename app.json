@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "scheme": "acme",
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-localization"
+    ],
+    "name": "goodwager",
+    "slug": "goodwager",
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "d967a9ec-1ed9-4784-82ed-b22775c100aa"
+      }
+    }
+  }
+}
