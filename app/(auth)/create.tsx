@@ -1,27 +1,11 @@
-import { View, Text, Pressable, Modal, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, FlatList, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
+import SwitchSelector from "react-native-switch-selector";
+import SwipeButton from 'rn-swipe-button';
 import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome6 } from '@expo/vector-icons';
 import React, {useState} from 'react';
 
-
-const styles = StyleSheet.create({
-  dropdownContainer: {
-    height: 40,
-    width: 75, // Set width to fit single digit number
-  },
-  dropdown: {
-    backgroundColor: '#fafafa',
-    borderColor: '#ccc',
-    borderWidth: 1,
-  },
-  dropdownItem: {
-    justifyContent: 'center', // Center the items in dropdown vertically
-  },
-  dropdownLabel: {
-    fontSize: 16, // Set font size as needed
-    textAlign: 'center', // Center the label text horizontally
-  },
-});
 
 const WagerAmountStepper = ({ amounts, selectedAmount, onAmountChange }) => {
   const increment = () => {
@@ -53,6 +37,7 @@ const CreateWager = () => {
 
   // State for wager amount
   const [selectedAmount, setSelectedAmount] = useState(20);
+  const amounts = [20, 50, 100, 200];
 
   // State for charity selection
   const [selectedCharity, setSelectedCharity] = useState(null);
@@ -64,26 +49,24 @@ const CreateWager = () => {
   ]);
 
   // State for workout days selection
-  const [openWorkout, setOpenWorkout] = useState(false);
-  const [workoutsPerWeek, setWorkoutsPerWeek] = useState(1); // default to 1 workout per week
-  const [workoutItems, setWorkoutItems] = useState(Array.from({ length: 7 }, (_, i) => ({
-    label: `${i + 1}`,
-    value: i + 1,
-  })));
-  const [startDate, setStartDate] = useState(new Date());
+  const [workOutDays, setWorkOutDays] = useState(4);
+  const workOutDaysOptions = [
+    { label: "4", value: 4, accessibilityLabel: "switch-4" },
+    { label: "5", value: 5, accessibilityLabel: "switch-5" },
+    { label: "6", value: 6, accessibilityLabel: "switch-6" },
+    { label: "7", value: 7, accessibilityLabel: "switch-7" }
+  ];
+  const startDate = new Date();
   const endDate = new Date(startDate.getTime());
   endDate.setDate(endDate.getDate() + 30);
 
-  const handleAmountPress = (amount) => {
-    setSelectedAmount(amount);
-  };
+  const timelineDates = Array.from({ length: 4 }, (_, i) => {
+    const date = new Date(startDate.getTime());
+    const fraction = (endDate.getTime() - startDate.getTime()) / 5;
+    date.setTime(startDate.getTime() + fraction * (i + 1));
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+  });
 
-  const handleCharityPress = (charity) => {
-    setSelectedCharity(charity);
-  };
-
-  const amounts = [20, 50, 100, 200];
-  const charities = ["Charity 1", "Charity 2", "Charity 3", "Charity 4", "Charity 5"]; 
   return(
     <View className='w-full h-full bg-neutral-900'>
       <View className='flex w-full justify-center items-center'>
@@ -113,27 +96,82 @@ const CreateWager = () => {
           />
 
           {/* Workout days Selection */}
-          <View className="flex-row mt-10 justify-between">
+          <View className="flex-col mt-10 justify-between">
             <View className="flex justify-center">
-              <Text className="text-lg text-white">Workouts per week:</Text>
+              <Text className="mb-4 text-lg text-white">Workouts per week:</Text>
+              <SwitchSelector
+                options={workOutDaysOptions}
+                initial={0}
+                onPress={value => setWorkOutDays(value)}
+                buttonColor='rgb(41, 227, 28)'
+                borderRadius={8}
+              />
             </View>
-            <DropDownPicker
-              open={openWorkout}
-              value={workoutsPerWeek}
-              items={workoutItems}
-              setOpen={setOpenWorkout}
-              setValue={setWorkoutsPerWeek}
-              setItems={setWorkoutItems}
-              theme="DARK"
-              placeholder="0"
-              style={styles.dropdown}
-              containerStyle={styles.dropdownContainer}
-            />
-
           </View>
+          
+          {/* Timeline */}
+          <Text className="text-lg text-white mt-10">Schedule:</Text>
+          <View className="mt-4 w-full flex-row justify-between items-center">
+              <View className='flex-col w-14 h-14 justify-center'>
+                <View className='flex w-full items-center'>
+                <FontAwesome6 name="flag" size={20} color={'rgb(41, 227, 28)'} />
+                </View>
+                <Text className="text-sm text-white ml-2">01/23</Text>
+              </View>
 
-          <Text className="mt-5 text-lg text-white">Start Date: {startDate.toDateString()}</Text>
-          <Text className="text-lg text-white">End Date: {endDate.toDateString()}</Text>
+              <View className='flex-col w-14 h-14 justify-center'>
+                <View className='flex w-full items-center'>
+                  <Ionicons name="checkmark-done" size={20} color={'#fff'} />
+                </View>
+                <Text className="text-sm text-white ml-2">01/23</Text>
+              </View>
+
+              <View className='flex-col w-14 h-14 justify-center'>
+                <View className='flex w-full items-center'>
+                  <Ionicons name="checkmark-done" size={20} color={'#fff'} />
+                </View>
+                <Text className="text-sm text-white ml-2">01/23</Text>
+              </View>
+
+              <View className='flex-col w-14 h-14 justify-center'>
+                <View className='flex w-full items-center'>
+                  <Ionicons name="checkmark-done" size={20} color={'#fff'} />
+                </View>
+                <Text className="text-sm text-white ml-2">01/23</Text>
+              </View>
+
+              <View className='flex-col w-14 h-14 justify-center'>
+                <View className='flex w-full items-center'>
+                <FontAwesome6 name="flag-checkered" size={20} color={'#fff'} />
+                </View>
+                <Text className="text-sm text-white ml-2">01/23</Text>
+              </View>
+          </View>
+          {/* Submit and Cancel Buttons */}
+          <SwipeButton
+            disabled={false}
+            //disable the button by doing true (Optional)
+            swipeSuccessThreshold={70}
+            height={45}
+            col
+            //height of the button (Optional)
+            width={330}
+            //width of the button (Optional)
+            title="Swipe to Submit"
+            //Text inside the button (Optional)
+            //thumbIconImageSource={thumbIcon}
+            //You can also set your own icon for the button (Optional)
+            onSwipeSuccess={() => {
+              alert('Submitted Successfully!');
+            }}
+            //After the completion of swipe (Optional)
+            railFillBackgroundColor="rgb(41, 227, 28)" //(Optional)
+            railFillBorderColor="#e688ff" //(Optional)
+            thumbIconBackgroundColor="#ffffff" //(Optional)
+            thumbIconBorderColor="#ed9aff" //(Optional)
+            railBackgroundColor="rgb(23, 23, 23)" //(Optional)
+            railBorderColor="#bbeaff" //(Optional)
+          />
         </View>
       </View>
     </View>
