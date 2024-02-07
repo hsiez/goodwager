@@ -1,10 +1,15 @@
 import { View, Text, Pressable, FlatList, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import SwitchSelector from "react-native-switch-selector";
-import SwipeButton from 'rn-swipe-button';
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
 import React, {useState} from 'react';
+import supabaseClient from '../utils/supabase';
+import { useAuth, useUser } from '@clerk/clerk-expo';
+import { useRouter } from 'expo-router';
+import { initBackgroundFetch } from '../background-tasks';
+import * as SecureStore from 'expo-secure-store';
+import { v4 as uuidv4 } from 'uuid';
 
 
 const WagerAmountStepper = ({ amounts, selectedAmount, onAmountChange }) => {
@@ -35,6 +40,11 @@ const WagerAmountStepper = ({ amounts, selectedAmount, onAmountChange }) => {
 
 const CreateWager = () => {
 
+  // User Data
+  const { user } = useUser();
+  const { getToken } = useAuth();
+  const router = useRouter();
+  
   // State for wager amount
   const [selectedAmount, setSelectedAmount] = useState(20);
   const amounts = [20, 50, 100, 200];
@@ -58,14 +68,45 @@ const CreateWager = () => {
   ];
   const startDate = new Date();
   const endDate = new Date(startDate.getTime());
-  endDate.setDate(endDate.getDate() + 30);
+  endDate.setDate(endDate.getDate() + 28);
 
-  const timelineDates = Array.from({ length: 4 }, (_, i) => {
-    const date = new Date(startDate.getTime());
-    const fraction = (endDate.getTime() - startDate.getTime()) / 5;
-    date.setTime(startDate.getTime() + fraction * (i + 1));
-    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-  });
+  // State for Drag and Drop submit
+  const [draggedItem, setDraggedItem] = useState(null);
+
+  // Handle Wager Cancel
+  const handleWagerCancel = () => {
+    router.push('/home');
+  };
+
+  // Handle Wager Creation
+  const handleWagerCreation = async() => {
+    console.log('Wager Creation');
+    const supabase = supabaseClient(await getToken({ template: 'supabase' }));
+    const wager_id = uuidv4();
+    const { error } = await supabase
+      .from('wagers')
+      .insert(
+        { wager_id: wager_id,
+          userId: user.id, 
+          amount: selectedAmount,
+          charity_name: selectedCharity,
+          start_date: startDate,
+          end_date: endDate,
+          token: 'token',
+          status: 'alive',
+          ongoing: true
+        })
+    if (error) {
+      console.log('error', error);
+    } else {
+      console.log('Wager created');
+      await SecureStore.setItemAsync('wager_id', uuidv4());
+      initBackgroundFetch();
+      router.push('/home');
+
+    }
+
+  };
 
   return(
     <View className='w-full h-full bg-neutral-900'>
@@ -85,6 +126,7 @@ const CreateWager = () => {
             
           {/* Charity Selection */}
           <DropDownPicker
+            style={{backgroundColor: 'rgb(64 64 64)', borderColor: 'rgb(252 211 77)', borderWidth: 2, borderRadius: 8}}
             open={openCharity}
             value={selectedCharity}
             items={items}
@@ -103,8 +145,12 @@ const CreateWager = () => {
                 options={workOutDaysOptions}
                 initial={0}
                 onPress={value => setWorkOutDays(value)}
-                buttonColor='rgb(41, 227, 28)'
+                buttonColor="rgb(252 211 77)"
+                borderColor='rgb(252 211 77)'
                 borderRadius={8}
+                borderWidth={9}
+                backgroundColor='rgb(64 64 64)'
+                textStyle={{color: 'black'}}
               />
             </View>
           </View>
@@ -114,7 +160,7 @@ const CreateWager = () => {
           <View className="mt-4 w-full flex-row justify-between items-center">
               <View className='flex-col w-14 h-14 justify-center'>
                 <View className='flex w-full items-center'>
-                <FontAwesome6 name="flag" size={20} color={'rgb(41, 227, 28)'} />
+                <FontAwesome6 name="flag" size={20} color={'rgb(5 150 105)'} />
                 </View>
                 <Text className="text-sm text-white ml-2">01/23</Text>
               </View>
@@ -148,30 +194,16 @@ const CreateWager = () => {
               </View>
           </View>
           {/* Submit and Cancel Buttons */}
-          <SwipeButton
-            disabled={false}
-            //disable the button by doing true (Optional)
-            swipeSuccessThreshold={70}
-            height={45}
-            col
-            //height of the button (Optional)
-            width={330}
-            //width of the button (Optional)
-            title="Swipe to Submit"
-            //Text inside the button (Optional)
-            //thumbIconImageSource={thumbIcon}
-            //You can also set your own icon for the button (Optional)
-            onSwipeSuccess={() => {
-              alert('Submitted Successfully!');
-            }}
-            //After the completion of swipe (Optional)
-            railFillBackgroundColor="rgb(41, 227, 28)" //(Optional)
-            railFillBorderColor="#e688ff" //(Optional)
-            thumbIconBackgroundColor="#ffffff" //(Optional)
-            thumbIconBorderColor="#ed9aff" //(Optional)
-            railBackgroundColor="rgb(23, 23, 23)" //(Optional)
-            railBorderColor="#bbeaff" //(Optional)
-          />
+          <View className="flex-row h-12 justify-between mt-10">
+            <TouchableOpacity className="flex justify-center border-rose-600 rounded-md border-2 pr-4 pl-4 pt-2 pb-2" onPress={handleWagerCancel}>
+              <Text className="text-white text-center">Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity className="flex justify-center border-emerald-600 rounded-md border-2 pr-4 pl-4 pt-2 pb-2" onPress={handleWagerCreation}>
+              <Text className="text-white">Submit</Text>
+            </TouchableOpacity>
+
+          </View>
+         
         </View>
       </View>
     </View>

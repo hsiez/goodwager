@@ -1,7 +1,9 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import HealthKitProvider from './components/HealthKitProvider';
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY
 
@@ -47,7 +49,11 @@ const tokenCache = {
 const RootLayout = () => {
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
-      <InitialLayout />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <HealthKitProvider>
+          <InitialLayout />
+        </HealthKitProvider>
+      </GestureHandlerRootView>
     </ClerkProvider>
   );
 };

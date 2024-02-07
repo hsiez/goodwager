@@ -6,7 +6,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-localization"
+      "expo-localization",
+      "react-native-health"
     ],
     "name": "goodwager",
     "slug": "goodwager",
@@ -17,6 +18,9 @@
       "eas": {
         "projectId": "d967a9ec-1ed9-4784-82ed-b22775c100aa"
       }
+    },
+    "ios": {
+      "bundleIdentifier": "com.harleysiezar.goodwager"
     }
   }
 }
