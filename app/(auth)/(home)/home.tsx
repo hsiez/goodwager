@@ -7,6 +7,8 @@ import * as Localization from 'expo-localization';
 import { Link } from "expo-router";
 import CurrentWorkoutStatus from '../../components/workout-status';
 import supabaseClient from '../../utils/supabase';
+import * as TaskManager from 'expo-task-manager';
+import * as SecureStore from 'expo-secure-store';
 
 
 const ManageWager = ({ activeWager }: { activeWager: boolean }) => {
@@ -42,6 +44,8 @@ const Home = () => {
   
     const fetchWager = async () => {
       try {
+        console.log(await TaskManager.getRegisteredTasksAsync())
+        console.log(await SecureStore.getItemAsync('wager_id'))
         console.log('fetching wager');
         let supabaseAccessToken: string | null = null;
         try {
