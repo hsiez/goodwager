@@ -22,7 +22,7 @@ const ManageWager = ({ activeWager }: { activeWager: boolean }) => {
     );
   } else {
     return (
-      <Link push href="/create" asChild>
+      <Link push href="wager/create" asChild>
                 <Pressable className='bg-zinc-700 rounded-md border-2 pr-4 pl-4 pt-2 pb-2'>
                   <Text className='text-white'>Create Wager</Text>
                 </Pressable>
@@ -31,7 +31,7 @@ const ManageWager = ({ activeWager }: { activeWager: boolean }) => {
   }
 }
 
-const Home = () => {
+const Wager = () => {
   const [hasActiveWager, setHasActiveWager] = useState(false);
   const [wager, setWager] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -93,7 +93,7 @@ const Home = () => {
       isSubscribed = false; // Clean up subscription on unmount
     };
   }, [user, getToken]);
-
+  console.log('wager', wager);
 
 
   return (
@@ -117,4 +117,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Wager;

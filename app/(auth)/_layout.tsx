@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useSegments } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable } from 'react-native';
 import { useAuth } from '@clerk/clerk-expo';
@@ -17,22 +17,28 @@ export const LogoutButton = () => {
   );
 };
 
+
 const TabsPage = () => {
   const { isSignedIn } = useAuth();
+  const segmen = useSegments();
 
   return (
     <Tabs
       screenOptions={{
-        headerShown: false
+        headerShown: false,
+        tabBarStyle: { backgroundColor: "rgb(23, 23, 23)", borderTopColor: "rgb(163 163 163)" },
       }}>
       <Tabs.Screen
-        name="home"
+        name="wager"
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
           tabBarLabel: 'Home',
         }}
         redirect={!isSignedIn}
+
       />
+          
+
       <Tabs.Screen
         name="profile"
         options={{

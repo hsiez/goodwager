@@ -3,7 +3,7 @@ import SwitchSelector from "react-native-switch-selector";
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
 import React, {useState} from 'react';
-import supabaseClient from '../utils/supabase';
+import supabaseClient from '../../utils/supabase';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
@@ -144,11 +144,8 @@ const CreateWager = () => {
   return(
     <View className='flex w-full h-full justify-between bg-neutral-900'>
       <View className='flex w-full justify-center items-center'>
-        <View className='justify-start mt-10'>
-          <Text className='text-3xl text-gray-100'>Create Wager</Text>
-        </View>
       </View>
-      <View className="flex-1 mt-20 mb-20 items-center">
+      <View className="flex-1 mt-10 mb-20 items-center">
         <View className="flex h-full justify-between rounded-lg w-4/5">
           {/* Charity info */}
           <View className="flex-col w-full justify-between items-start">
@@ -260,7 +257,7 @@ const CreateWager = () => {
           {/* Submit and Cancel Buttons */}
           <View className="flex-row h-11 w-full justify-between mt-10">
             <TouchableOpacity className="flex w-full h-full justify-center bg-zinc-100 rounded-3xl" onPress={handleWagerCreation}>
-              <Text className="text-black font-bold text-xs text-center">Create Wager</Text>
+              <Text className="text-black font-bold text-xs text-center">Send It</Text>
             </TouchableOpacity>
           </View>
          
