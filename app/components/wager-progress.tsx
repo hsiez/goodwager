@@ -10,7 +10,6 @@ const WorkoutTable = () => {
     'W1': [true, false, true, false, true, false, true],
     'W2': [true, true, false, true, false, true, false],
     'W3': [false, true, true, false, true, true, false],
-    'W4': [true, false, true, true, false, true, true],
   };
 
   const handleCellPress = (week: string, day: number) => {
@@ -19,21 +18,21 @@ const WorkoutTable = () => {
   };
 
   return (
-    <View className="flex-1 items-center p-4 bg-neutral-900">
+    <View className="flex h-40 justify-center items-center px-4  border rounded-lg border-zinc-600">
       {Object.entries(workoutData).map(([week, days]) => (
-        <View key={week} className="flex-row items-center">
-          <Text className="text-white w-8">{week}</Text>
+        <View key={week} className="flex-row space-y-2 space-x-2 items-center">
+          <Text className="text-white text-xs w-5">{week}</Text>
           {days.map((isWorkoutDone, index) => (
             <TouchableOpacity
               key={`${week}-${index}`}
               onPress={() => handleCellPress(week, index + 1)}
-              className={`flex-1 h-10 bg-gray-300`}
+              className={`flex justify-center rounded h-8 w-8`}
             >
-                <View className={`h-full w-full rounded ${isWorkoutDone ? 'bg-green-500' : 'bg-red-500'}`} />
+                <View className={`h-full w-full rounded ${isWorkoutDone ? 'bg-teal-700' : 'bg-pink-900'} ${index===6 ? 'shadow shadow-green-400' : ''}`}>
+                </View>
               {/* Cell content */}
             </TouchableOpacity>
           ))}
-          <View className="w-12 h-10 border-2 border-yellow-400 border-opacity-100" />
         </View>
       ))}
 

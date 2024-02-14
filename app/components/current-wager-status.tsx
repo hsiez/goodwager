@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, Pressable } from 'react-native';
 import HealthKitContext from './HealthkitContext';
 
 type CurrentWagerProps = {
@@ -44,16 +44,17 @@ const CurrentWager: React.FC<CurrentWagerProps> = ({ wager }) => {
     }
 
     return (
-        <View className='flex w-2/3 h-fit justify-center items-center pt-6 pb-6 border-solid border-2 border-zinc-700 rounded-md'>
-            <Text className='text-6xl text-gray-100 text-center'>{wager !== null ? `$${wager.amount}` : '$0'}</Text>
-            <Text className='text-lg text-gray-500 text-center'>{wager !== null ? `${wager.charity_name}` : "No active wager"}</Text>
-
-            <View className='flex w-full justify-center mt-10'>
-                <Text className='text-2xl text-gray-100 text-center'>Status:</Text>
-                <View className='flex items-center mt-2'>
-                    <View className={`w-12 h-12 rounded-full bg-green-500`}></View>
-                </View>
+        <View className="flex-col w-full justify-between items-start">
+            <View className="flex-row w-full mb-2 justify-between items-center">
+                <Text className="text-2xl text-white text-center">Today's Status</Text>
+                <View className='h-8 w-8 rounded-full border-2 border-neutral-500' />
             </View>
+            <View className='flex-col items-start w-full'>
+                <Text className="text-md text-white">No workout detected</Text>
+                <Pressable className='flex w-28 h-6 items-start'>
+                    <Text className='text-rose-500 font-bold text-sm text-center'>Use Rest Day</Text>
+                </Pressable>
+            </View>         
         </View>
     );
 };
