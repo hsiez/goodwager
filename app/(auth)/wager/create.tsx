@@ -60,9 +60,9 @@ const CreateWager = () => {
 
   // State for charity selection
   const charities = [
-    {label: 'Samaritan', value: 'samaritan', url: 'samaritan.city'},
-    {label: 'Red Cross', value: 'samaritan', url: 'redcross.com'},
-    {label: 'Doctors w/o Borders', value: 'samaritan', url: 'dwb.org'},
+    {label: 'Samaritan', value: 'samaritan', url: 'samaritan.city', id: "7d167796-a0ba-49ec-8fd2-48babc2b64c3"},
+    {label: 'Red Cross', value: 'samaritan', url: 'redcross.com', id: "7d167796-a0ba-49ec-8fd2-48babc2b64c3"},
+    {label: 'Doctors w/o Borders', value: 'samaritan', url: 'dwb.org', id: "7d167796-a0ba-49ec-8fd2-48babc2b64c3"},
   ]
   const [selectedCharityIndex, setSelectedCharityIndex] = useState(0);
   const translateX = new Animated.Value(0);
@@ -122,9 +122,10 @@ const CreateWager = () => {
         { wager_id: wager_id,
           userId: user.id, 
           amount: selectedAmount,
-          charity_name: selectedCharity,
+          charity_name: selectedCharity.id,
           start_date: startDate,
           end_date: endDate,
+          workout_freq: workOutDays,
           token: 'token',
           status: 'alive',
           ongoing: true
@@ -133,9 +134,9 @@ const CreateWager = () => {
       console.log('error', error);
     } else {
       console.log('Wager created');
-      await SecureStore.setItemAsync('wager_id', uuidv4());
+      await SecureStore.setItemAsync('wager_id', wager_id);
       console.log('Wager ID stored');
-      router.push('/home');
+      router.push('/wager/index');
 
     }
 

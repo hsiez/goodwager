@@ -7,7 +7,7 @@ const WagerStack = () => {
         screenOptions={{
             headerShown: true,
             headerStyle: {
-                backgroundColor: "rgb(23, 23, 23)", // Correct property for background color
+                backgroundColor: "#080808", // Correct property for background color
                 
             },
             headerBackTitleVisible: false,
@@ -17,7 +17,7 @@ const WagerStack = () => {
             <Stack.Screen
             name="current_wager"
             options={{
-                headerTitle: 'Wager',
+                headerTitle: 'goodwager',
             }}/>
             
             <Stack.Screen
