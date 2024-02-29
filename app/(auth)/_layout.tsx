@@ -26,7 +26,7 @@ const TabsPage = () => {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: "rgb(23, 23, 23)", borderTopColor: "rgb(163 163 163)" },
+        tabBarStyle: { backgroundColor: "rgb(23, 23, 23)" }
       }}>
       <Tabs.Screen
         name="wager"
@@ -45,6 +45,16 @@ const TabsPage = () => {
           tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
           tabBarLabel: 'My Profile',
           headerRight: () => <LogoutButton />,
+        }}
+        redirect={!isSignedIn}
+      />
+
+      <Tabs.Screen
+        name="followers"
+        options={{
+          tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} />,
+          tabBarLabel: 'Friends',
+          headerShown: true,
         }}
         redirect={!isSignedIn}
       />
