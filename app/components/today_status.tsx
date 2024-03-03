@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Text, View, Pressable, StyleSheet } from 'react-native';
+import { Text, View, Pressable, StyleSheet, TextBase } from 'react-native';
 import HealthKitContext from './HealthkitContext';
 import Svg, { Rect, Defs, Stop, RadialGradient } from 'react-native-svg';
 import { InsetShadow } from 'react-native-inset-shadow';
@@ -13,9 +13,10 @@ const TodayStatus = ({ wager_id, start_date }: { wager_id: boolean, start_date }
     const [challengeDay, setChallengeDay] = useState([0, 0]);
     let statusColor = 'black';
     let statusText = 'No Workout Detected';
+    let workoutStatus = "Incomplete";
     let StatusIcon = () => { 
         return (    
-            <Ionicons name="checkmark-done-outline" size={16} color="#71BC78" />
+            <Ionicons name="checkmark-done-outline" size={9} color="#71BC78" />
         )
     }
     const today = new Date().setHours(0, 0, 0, 0);
@@ -25,9 +26,10 @@ const TodayStatus = ({ wager_id, start_date }: { wager_id: boolean, start_date }
         case true:
             statusColor = '#71BC78';
             statusText = 'Workout Detected';
+            workoutStatus = "Complete";
             StatusIcon = () => { 
                 return (    
-                    <Ionicons name="checkmark-done-outline" size={16} color="#71BC78" />
+                    <Ionicons name="checkmark-done-outline" size={9} color="#71BC78" />
                 )
             }
             break;
@@ -36,7 +38,7 @@ const TodayStatus = ({ wager_id, start_date }: { wager_id: boolean, start_date }
             statusText = 'No Workout Detected';
             StatusIcon = () => { 
                 return (    
-                    <Ionicons name="alert-outline" size={16} color="#fb7185" />
+                    <Ionicons name="alert-outline" size={9} color="#fb7185" />
                 )
             }
             break;
@@ -79,33 +81,34 @@ const TodayStatus = ({ wager_id, start_date }: { wager_id: boolean, start_date }
     }, [wager_id, healthKitAvailable]);
 
     return (
-        <View  className='h-1/3 w-full'>
-            <Shadow startColor={'#050505'} paintInside={true} distance={6} style={{borderRadius: 10, flexDirection: "row", width: '100%', height:"100%" }}>
-                <View style={{backgroundColor: "#0D0D0D"}} className="flex h-full rounded-lg w-full justify-center items-center">
+        <View  className='flex w-3/5 rounded-xl'>
+            
+            <Shadow startColor={'#050505'} paintInside={true} distance={4} style={{borderRadius: 12}}>
+                <View style={{backgroundColor: "#0D0D0D"}} className="flex h-full w-full justify-center items-center border-neutral-800 rounded-xl border">
                     <View className='h-full w-full flex-col justify-between items-center'>
-                        <View className="flex-col w-full items-center">
-                            <View style={{backgroundColor: statusColor, width: "90%", height:"18%"}} className="rounded-b items-center px-4 h-3" />
-                            <View className="flex h-fit w-fit rounded-lg items-center bg-neutral-800 px-3 py-0.5 mt-1">
-                                <Text className="text-neutral-300 text-center text-xs ">{statusText}</Text>
+                        <View className="flex-col h-fit w-full items-center">
+                            {/* top bar for status color indicator */}
+                            <View className="flex-row space-x-1 h-fit w-fit rounded-b items-center border-neutral-800 border border-t-0 px-3 py-0.5">
+                                <Text style={{fontSize:10}} className="text-neutral-300 text-center">{statusText}</Text>
+                                <View className="h-fit w-fit p-0.5 rounded-full bg-neutral-800"> 
+                                    <StatusIcon />
+                                </View>
                             </View>
                         </View>
 
                         {/* Todays Date in format: month abreviation day, year in large text */}
-                        <View className="flex-row w-full justify-center items-end px-3">
-                            <Text className="text-white text-left text-2xl">Day </Text>
-                            <View className="h-fit w-6 rounded bg-neutral-800 px-1 py-1 mr-1 ">
-                                <Text className="text-white text-center text-xl font-bold">{challengeDay[0]}</Text>
-                            </View>
-                            <View className="h-fit w-6 rounded bg-neutral-800 px-1 py-1">
-                                <Text className="text-white text-center text-xl font-bold">{challengeDay[1]}</Text>
-                            </View>
-                        </View>
-                        <View className="flex-row w-full justify-between items-center px-2">
-                            <View className="flex justify-start">
-                                <Text className="text-white text-left text-lg font-bold">Today's Workout:</Text>
-                            </View>
-                            <View className="h-fit w-fit p-2 rounded-full bg-neutral-800"> 
-                                <StatusIcon />
+                        <View className="flex-row w-full justify-center items-center ">
+                            <View className='flex-row w-full justify-center'>
+                                <Text className="text-white text-left text-2xl">Day </Text>
+                            
+                                <View className="flex-row h-fit w-fit space-x-0.5">
+                                    <View className="h-fit w-6 rounded bg-neutral-800 py-1">
+                                        <Text className="text-white text-center text-xl font-bold">{challengeDay[0]}</Text>
+                                    </View>
+                                    <View className="h-fit w-6 rounded bg-neutral-800 py-1">
+                                        <Text className="text-white text-center text-xl font-bold">{challengeDay[1]}</Text>
+                                    </View>
+                                </View>
                             </View>
                         </View>
                         {/* Low right corner area for notifications */}

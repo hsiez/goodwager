@@ -55,6 +55,10 @@ const TabsPage = () => {
           tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} />,
           tabBarLabel: 'Friends',
           headerShown: true,
+          headerStyle: {
+            backgroundColor: "#090909", // Correct property for background color
+          },
+          headerTintColor: '#fff'
         }}
         redirect={!isSignedIn}
       />

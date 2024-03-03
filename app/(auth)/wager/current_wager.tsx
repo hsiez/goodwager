@@ -11,6 +11,8 @@ import * as SecureStore from 'expo-secure-store';
 import * as Linking from 'expo-linking';
 import charity_map from '../../utils/charity_map';
 import { Shadow } from 'react-native-shadow-2';
+import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome6 } from '@expo/vector-icons';
 //import Svg { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 
 
@@ -23,55 +25,81 @@ type CharityInfo = {
 
 
 const WagerInfo = ({charity_id, amount, end_date}: {charity_id: string, amount: number, end_date: any }) => {
+  const [endDateLong, setEndDateLong] = useState('');
+
+  useEffect(() => {
+    if (end_date != null) {
+      var finish = new Date(end_date);
+      setEndDateLong(`${finish.toLocaleString('default', { month: 'short' })} ${finish.getDate()}, ${finish.getFullYear()}`);
+    }
+  }, [end_date]);
+
   if (charity_id === null) {
     return (
-      <View className='flex w-full justify-center '>
-        <View className='flex-row w-full justify-between'>
-          <Text className="text-xl text-white">On the Line </Text>
-          <Text className="text-2xl text-white">$0</Text>
-        </View>
-        
-        <View className='flex-row w-full justify-between'>
-          <View className='flex-row space-x-1 mb-1'>
-            <Text className="text-xs font-bold text-rose-500"> NO</Text>
-            <Text className="text-xs text-neutral-600">ACTIVE WAGER</Text>
-          </View>
-          <View className='flex h-6 w-28'>
-            <Shadow startColor={'#050505'} paintInside={true} distance={6} style={{borderRadius: 10, flexDirection: "row", width: '100%', height:"100%" }}>
-                    <View style={{backgroundColor: "#0D0D0D"}} className="flex h-full border border-neutral-400 bg-neutral-700 rounded-lg w-full justify-center items-center">
-                        <View className='h-full w-full flex-col justify-between items-center'>
-                          <Link href="/wager/create" asChild>
-                            <Pressable className='flex items-center justify-center'>
-                              <Text className='text-white text-sm text-center'>Create Wager</Text>
-                            </Pressable>
-                          </Link>
-                        </View>
-                    </View>
-                </Shadow>
-          </View>
+      <View className='flex w-full items-start'>
+      <View className='flex-row w-full justify-between mb-4 '>
+        <View className='flex-row justify-center items-center space-x-1'>
+          <Text style={{fontSize: 12}} className="text-neutral-500 font-semibold">NO</Text>
+          <Text style={{fontSize: 12}} className="text-white font-semibold">WAGER</Text>
         </View>
       </View>
+      <View className="flex-col w-full justify-center items-center mb-1">
+        <Text className="text-5xl text-white">$0</Text>
+        <View className="flex-row w-full space-x-2 justify-center items-center">
+          <View className="flex w-fit justify-end p-0.5 border rounded border-neutral-500 ">
+            <Link href="/other" asChild>
+              <Pressable className='flex items-center'>
+                <Ionicons name="options-outline" size={14} color="rgb(115 115 115)" />
+              </Pressable>
+            </Link>
+          </View>
+          
+        </View>
+      </View>
+      
+      
+    </View>
     )
   }
   const charity: CharityInfo = charity_map[charity_id];
   return (
     <View className='flex w-full items-start'>
-      <View className='flex-row space-x-1 mb-1'>
-        <Text className="text-xs text-emerald-400">ACTIVE</Text>
-        <Text className="text-xs text-white">WAGER</Text>
+      <View className='flex-col w-full justify-between mb-3 '>
+        <View className='flex-row justify-start items-center space-x-1'>
+          <Text style={{fontSize: 12}} className="text-emerald-400 font-semibold">ONGOING</Text>
+          <Text style={{fontSize: 12}} className="text-white font-semibold">WAGER</Text>
+        </View>
+        
+        
       </View>
-      <View className="flex-row w-full justify-between mb-1">
-        <Text className="text-3xl text-white">{charity.name}</Text>
-        <Text className="text-4xl text-white">{amount}</Text>
+      <View className="flex w-full justify-center items-center  mb-1">
+        <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
+          <View style={{backgroundColor: "#0D0D0D"}} className='flex-col border-neutral-800 rounded-xl border justify-center items-center'>
+            <View className='flex-row w-full px-2 py-1 mb-2 justify-between items-center border-neutral-800 rounded-md border-b'>
+              <Text style={{fontSize: 10}} className="text-neutral-200">{charity.name}</Text>
+              <View className="flex-row space-x-1 w-fit py-0.5 justify-center items-center">
+                <FontAwesome6 name="flag-checkered" size={8} color={'rgb(115 115 115)'} />
+                <Text style={{fontSize: 8}} className="text-neutral-300 text-end">{endDateLong}</Text>
+              </View>
+            </View>
+            <View className="flex w-fit pt-2 justify-center items-center">
+              <Text className="text-5xl text-white">${amount}</Text>
+            </View>
+            <View className="flex-row w-full space-x-2 mb-2 justify-center items-center">
+              <View className='flex-row p-0.5 space-x-1'>
+                <Text style={{fontSize: 10}} className="text-neutral-600 ml-1 ">manage wager</Text>
+                <Link href="/other" asChild>
+                    <Pressable className='flex rounded justify-center items-center'>
+                      <Ionicons name="pencil-outline" size={10} color="#525252" />
+                    </Pressable>
+                  </Link>
+              </View>
+            </View>
+          </View>
+        </Shadow>
       </View>
-      <View className="flex-row w-full justify-between">
-        <Text className="text-xs text-white">{end_date}</Text>
-        <Link href="/other" asChild>
-          <Pressable className='flex w-20 h-6 items-center rounded border-2 border-slate-500'>
-            <Text className='text-white text-sm text-center'>Manage</Text>
-          </Pressable>
-        </Link>
-      </View>
+      
+      
     </View>
   );
 }
@@ -163,16 +191,26 @@ const Wager = () => {
 
 
   return (
-    <View style={{backgroundColor: "#080808"}} className="flex-col h-full items-center ">
+    <View style={{backgroundColor: "#090909"}} className="flex-col h-full items-center ">
       <View className='flex-col w-full px-5 h-full py-10 justify-between items-center'>
         {/* If there is an active wager, show the wager info */}
         <WagerInfo charity_id={wager.charity_id} amount={wager.amount} end_date={wager.end_date} /> 
  
         {/* if there is an active wager, show Todays stats: status, pokes, use rest day*/}
-        <TodayStatus wager_id={wager.id} start_date={wager.start_date}/>
+        <View className='flex-col w-full h-1/4 justify-center items-center'>
+          <View className='flex w-full items-start mb-4'>
+            <Text className="text-white font-semibold">TODAY</Text>
+          </View>
+          <TodayStatus wager_id={wager.id} start_date={wager.start_date}/>
+        </View>
 
         {/* section for overall wager progress. 28 days, 4 check point, 7 days for each check point */}
-        <WagerCalendar wagerId={wager.id} start_date={wager.start_date} />
+        <View className='flex-col w-full h-1/4 justify-center items-center'>
+          <View className='flex w-full items-start mb-4'>
+            <Text style={{fontSize: 12}} className="text-white font-semibold">WAGER TRACKER</Text>
+          </View>
+          <WagerCalendar wagerId={wager.id} start_date={wager.start_date} />
+        </View>
       </View>
 
     </View>

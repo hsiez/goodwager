@@ -120,9 +120,9 @@ const CreateWager = () => {
       .from('wagers')
       .insert(
         { wager_id: wager_id,
-          userId: user.id, 
+          user_id: user.id, 
           amount: selectedAmount,
-          charity_name: selectedCharity.id,
+          charity_id: selectedCharity.id,
           start_date: startDate,
           end_date: endDate,
           workout_freq: workOutDays,
@@ -136,14 +136,14 @@ const CreateWager = () => {
       console.log('Wager created');
       await SecureStore.setItemAsync('wager_id', wager_id);
       console.log('Wager ID stored');
-      router.push('/wager/index');
+      router.push('wager/index');
 
     }
 
   };
 
   return(
-    <View className='flex w-full h-full justify-between bg-neutral-900'>
+    <View style={{backgroundColor: "#090909"}} className='flex w-full h-full justify-between'>
       <View className='flex w-full justify-center items-center'>
       </View>
       <View className="flex-1 mt-10 mb-20 items-center">

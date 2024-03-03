@@ -62,7 +62,7 @@ const WagerCalendar = ({ wagerId, start_date }: { wagerId: string | null, start_
               className={`flex justify-center rounded h-8 w-8`}
               disabled={!wagerActive}
             >
-        <View key={`${week}-${index}`} className="flex h-10 w-10" >
+        <View key={data.challengeDay} className="flex h-10 w-10" >
           <Shadow startColor={'#050505'} paintInside={true} distance={4} style={{borderRadius: 10, flexDirection: "row", width: '100%', height:"100%" }}>
               <View style={{backgroundColor: "#0D0D0D"}} className={`flex border-0.5 ${borderColor} bg-slate-50 pt-0.5 rounded-lg w-full justify-between pb-1 items-center`}>
                 <View style={{backgroundColor: statusColor, width: "60%", height:"10%"}} className="flex rounded-b items-center" />
@@ -127,7 +127,7 @@ const WagerCalendar = ({ wagerId, start_date }: { wagerId: string | null, start_
     setModalVisible(true);
   };
   return (
-    <View className="flex-col h-1/4 justify-between w-full items-center p-2">
+    <View className="flex-col h-full justify-between w-full items-center p-1">
       <Week week={weekOne} week_number={1} />
       <Week week={weekTwo} week_number={2} />
       <Week week={weekThree} week_number={3} />
