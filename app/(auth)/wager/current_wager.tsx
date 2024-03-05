@@ -37,28 +37,41 @@ const WagerInfo = ({charity_id, amount, end_date}: {charity_id: string, amount: 
   if (charity_id === null) {
     return (
       <View className='flex w-full items-start'>
-      <View className='flex-row w-full justify-between mb-4 '>
-        <View className='flex-row justify-center items-center space-x-1'>
-          <Text style={{fontSize: 12}} className="text-neutral-500 font-semibold">NO</Text>
-          <Text style={{fontSize: 12}} className="text-white font-semibold">WAGER</Text>
-        </View>
-      </View>
-      <View className="flex-col w-full justify-center items-center mb-1">
-        <Text className="text-5xl text-white">$0</Text>
-        <View className="flex-row w-full space-x-2 justify-center items-center">
-          <View className="flex w-fit justify-end p-0.5 border rounded border-neutral-500 ">
-            <Link href="/other" asChild>
-              <Pressable className='flex items-center'>
-                <Ionicons name="options-outline" size={14} color="rgb(115 115 115)" />
-              </Pressable>
-            </Link>
+        <View className='flex-col w-full justify-between mb-3 '>
+          <View className='flex-row justify-start items-center space-x-1'>
+            <Text style={{fontSize: 12}} className="text-neutral-500 font-semibold">NO ONGOING WAGER</Text>
           </View>
           
+          
+        </View>
+        <View className="flex w-full justify-center items-center  mb-1">
+          <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
+            <View style={{backgroundColor: "#0D0D0D"}} className='flex-col border-neutral-800 rounded-xl border justify-center items-center'>
+              <View className='flex-row w-full px-2 py-1 mb-2 justify-between items-center border-neutral-800 rounded-md border-b'>
+                <Text style={{fontSize: 8}} className="text-neutral-200">Don't Be Shy</Text>
+                <View className="flex-row space-x-1 h-3 w-fit justify-center items-center">
+                  <View className="flex-col h-full justify-end items-end">
+                    <Text style={{fontSize: 8}} className="text-neutral-300">Ante Up</Text>
+                  </View>
+                </View>
+              </View>
+              <View className="flex w-fit pt-2 justify-center items-center">
+                <Text className="text-4xl text-white">${amount}</Text>
+              </View>
+              <View className="flex-row w-full space-x-2 mb-2 justify-center items-center">
+              <View className='flex-row p-0.5'>
+                <Link href="/other" asChild>
+                    <Pressable className='flex-row space-x-1 justify-center items-end'>
+                      <Text style={{fontSize: 8}} className="text-neutral-100 ml-1 ">Create New Wager</Text>
+                      <Ionicons name="create-outline" size={12} color="rgb(212 212 212)" />
+                    </Pressable>
+                  </Link>
+              </View>
+              </View>
+            </View>
+          </Shadow>
         </View>
       </View>
-      
-      
-    </View>
     )
   }
   const charity: CharityInfo = charity_map[charity_id];
@@ -77,20 +90,22 @@ const WagerInfo = ({charity_id, amount, end_date}: {charity_id: string, amount: 
           <View style={{backgroundColor: "#0D0D0D"}} className='flex-col border-neutral-800 rounded-xl border justify-center items-center'>
             <View className='flex-row w-full px-2 py-1 mb-2 justify-between items-center border-neutral-800 rounded-md border-b'>
               <Text style={{fontSize: 10}} className="text-neutral-200">{charity.name}</Text>
-              <View className="flex-row space-x-1 w-fit py-0.5 justify-center items-center">
+              <View className="flex-row space-x-1 h-3 w-fit justify-center items-center">
                 <FontAwesome6 name="flag-checkered" size={8} color={'rgb(115 115 115)'} />
-                <Text style={{fontSize: 8}} className="text-neutral-300 text-end">{endDateLong}</Text>
+                <View className="flex-col h-full justify-end items-end">
+                  <Text style={{fontSize: 8}} className="text-neutral-300">{endDateLong}</Text>
+                </View>
               </View>
             </View>
             <View className="flex w-fit pt-2 justify-center items-center">
-              <Text className="text-5xl text-white">${amount}</Text>
+              <Text className="text-4xl text-white">${amount}</Text>
             </View>
             <View className="flex-row w-full space-x-2 mb-2 justify-center items-center">
-              <View className='flex-row p-0.5 space-x-1'>
-                <Text style={{fontSize: 10}} className="text-neutral-600 ml-1 ">manage wager</Text>
+              <View className='flex-row p-0.5'>
                 <Link href="/other" asChild>
-                    <Pressable className='flex rounded justify-center items-center'>
-                      <Ionicons name="pencil-outline" size={10} color="#525252" />
+                    <Pressable className='flex-row space-x-1 justify-center items-end'>
+                      <Text style={{fontSize: 8}} className="text-neutral-600 ml-1 ">Manage Wager</Text>
+                      <Ionicons name="pencil-outline" size={9} color="#525252" />
                     </Pressable>
                   </Link>
               </View>
@@ -199,7 +214,7 @@ const Wager = () => {
         {/* if there is an active wager, show Todays stats: status, pokes, use rest day*/}
         <View className='flex-col w-full h-1/4 justify-center items-center'>
           <View className='flex w-full items-start mb-4'>
-            <Text className="text-white font-semibold">TODAY</Text>
+            <Text  style={{fontSize: 12}} className="text-white font-semibold">TODAY</Text>
           </View>
           <TodayStatus wager_id={wager.id} start_date={wager.start_date}/>
         </View>
@@ -207,7 +222,7 @@ const Wager = () => {
         {/* section for overall wager progress. 28 days, 4 check point, 7 days for each check point */}
         <View className='flex-col w-full h-1/4 justify-center items-center'>
           <View className='flex w-full items-start mb-4'>
-            <Text style={{fontSize: 12}} className="text-white font-semibold">WAGER TRACKER</Text>
+            <Text style={{fontSize: 12}} className="text-white font-semibold">TRACKER</Text>
           </View>
           <WagerCalendar wagerId={wager.id} start_date={wager.start_date} />
         </View>

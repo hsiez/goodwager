@@ -38,7 +38,7 @@ const TodayStatus = ({ wager_id, start_date }: { wager_id: boolean, start_date }
             statusText = 'No Workout Detected';
             StatusIcon = () => { 
                 return (    
-                    <Ionicons name="alert-outline" size={9} color="#fb7185" />
+                    <Ionicons name="alert-outline" size={9} color="rgb(248 113 113)" />
                 )
             }
             break;
@@ -82,22 +82,21 @@ const TodayStatus = ({ wager_id, start_date }: { wager_id: boolean, start_date }
 
     return (
         <View  className='flex w-3/5 rounded-xl'>
-            
             <Shadow startColor={'#050505'} paintInside={true} distance={4} style={{borderRadius: 12}}>
                 <View style={{backgroundColor: "#0D0D0D"}} className="flex h-full w-full justify-center items-center border-neutral-800 rounded-xl border">
-                    <View className='h-full w-full flex-col justify-between items-center'>
-                        <View className="flex-col h-fit w-full items-center">
-                            {/* top bar for status color indicator */}
-                            <View className="flex-row space-x-1 h-fit w-fit rounded-b items-center border-neutral-800 border border-t-0 px-3 py-0.5">
-                                <Text style={{fontSize:10}} className="text-neutral-300 text-center">{statusText}</Text>
-                                <View className="h-fit w-fit p-0.5 rounded-full bg-neutral-800"> 
-                                    <StatusIcon />
-                                </View>
+                    <View className='flex-col h-full w-full justify-between items-center'>
+                        <View className="flex-col w-full h-1/3 items-center">
+                            <View className="flex-row w-full h-1/6 justify-start items-start">
+                                <View style={{backgroundColor: statusColor}} className="space-x-1 h-full w-3/4 rounded-b-lg border-neutral-800 border border-t-0 py-0.5"/>
+                            </View>
+                            <View className="flex-row w-full space-x-1">
+                                <Text style={{fontSize: 8}} className="text-neutral-600">{statusText}</Text>
+                               
                             </View>
                         </View>
 
                         {/* Todays Date in format: month abreviation day, year in large text */}
-                        <View className="flex-row w-full justify-center items-center ">
+                        <View className="flex-row w-full h-1/3 justify-center items-center">
                             <View className='flex-row w-full justify-center'>
                                 <Text className="text-white text-left text-2xl">Day </Text>
                             
@@ -112,11 +111,11 @@ const TodayStatus = ({ wager_id, start_date }: { wager_id: boolean, start_date }
                             </View>
                         </View>
                         {/* Low right corner area for notifications */}
-                        <View className="flex-row  w-full justify-end">
-                            <View className="flex-row w-1/3 h-5 justify-center space-x-1 items-center border-l border-t rounded-tl border-neutral-800">
-                                <View className="h-3 w-3 rounded-full bg-orange-400" />
-                                <View className="h-3 w-3 rounded-full bg-rose-400"/>
-                                <View className="h-3 w-3 rounded-full bg-green-400"/>
+                        <View className="flex-row h-1/3 w-full items-end justify-end">
+                            <View className="flex-row w-1/3 h-4 justify-center space-x-1 items-center border-l border-t rounded-tl-lg border-neutral-800">
+                                <View className="h-2 w-2 rounded-full bg-orange-400" />
+                                <View className="h-2 w-2 rounded-full bg-rose-400"/>
+                                <View className="h-2 w-2 rounded-full bg-green-400"/>
                                 
                             </View>
                         
