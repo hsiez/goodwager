@@ -34,7 +34,7 @@ const TodayStatus = ({ wager_id, start_date }: { wager_id: boolean, start_date }
             }
             break;
         case false:
-            statusColor = '#a1a1aa';
+            statusColor = 'rgb(64 64 64)';
             statusText = 'No Workout Detected';
             StatusIcon = () => { 
                 return (    

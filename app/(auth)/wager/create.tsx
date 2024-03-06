@@ -29,17 +29,17 @@ const WagerAmountStepper = ({ amounts, selectedAmount, onAmountChange }) => {
   return (
     <View className="flex-row w-full mt-4 justify-between items-center pb-2">
       <View className="flex items-center">
-        <Text className="text-5xl text-white text-start">{`$${selectedAmount}`}</Text>
+        <Text className="text-4xl text-white text-start">{`$${selectedAmount}`}</Text>
       </View>
-      <View className="flex-row space-x-3">
+      <View className="flex-row space-x-1">
         <TouchableOpacity onPress={decrement} className="">
-          <View className="p-1 border-2 flex h-15 w-15 items-center justify-center rounded-full" style={{borderColor: "#3f4548"}}>
-            <Ionicons name="remove-outline" size={35} color={'#fff'} />
+          <View style={{backgroundColor: "#0D0D0D"}} className="p-1 border-neutral-800 border-2 flex h-15 w-15 items-center justify-center rounded-xl">
+            <Ionicons name="remove-outline" size={30} color={'#fff'} />
           </View>
         </TouchableOpacity>
         <TouchableOpacity onPress={increment} className="">
-          <View className="p-1 border-2 flex h-15 w-15 items-center justify-center rounded-full" style={{borderColor: "#3f4548"}}>
-            <Ionicons name="add-outline" size={35} color={'#fff'}/>
+          <View style={{backgroundColor: "#0D0D0D"}} className="p-1 border-neutral-800 border-2 flex h-15 w-15 items-center justify-center rounded-xl">
+            <Ionicons name="add-outline" size={30} color={'#fff'}/>
           </View>
         </TouchableOpacity>
       </View>
@@ -137,7 +137,7 @@ const CreateWager = () => {
       for (let i = 0; i < 21; i++) {
         var result = new Date(startDate);
         result.setDate(result.getDate() + i);
-        wager_tracker[result.toString()] = {
+        wager_tracker[result.toISOString()] = {
           workedOut: false, 
           challengeDay: i + 1, 
           workoutType: null
@@ -153,21 +153,19 @@ const CreateWager = () => {
 
   return(
     <View style={{backgroundColor: "#090909"}} className='flex w-full h-full justify-between'>
-      <View className='flex w-full justify-center items-center'>
-      </View>
-      <View className="flex-1 mt-10 mb-20 items-center">
-        <View className="flex h-full justify-between rounded-lg w-4/5">
+      <View className="flex-col items-center justify-between">
+        <View className="flex h-full py-10 justify-between rounded-lg px-5">
           {/* Charity info */}
           <View className="flex-col w-full justify-between items-start">
             <PanGestureHandler onGestureEvent={onGestureEvent} onHandlerStateChange={onHandlerStateChange}>
               <Animated.View
                 style={{ transform: [{ translateX }], }}>
                 <View className="flex-col w-full justify-between items-start pb-1">
-                  <Text className="text-xs text-white">NONPROFIT</Text>
-                  <Animated.Text className="text-3xl text-white">{selectedCharity.label}</Animated.Text>
-                  <Pressable className="flex-row space-x-2" onPress={() => Linking.openURL(selectedCharity.url)}>
-                    <Text className="text-xs font-mono text-rose-600">Learn more</Text>
-                    <Text className="text-xs font-mono text-white">{selectedCharity.url}</Text>
+                  <Text style={{fontSize: 12}} className="text-neutral-200 font-semibold">NONPROFIT</Text>
+                  <Animated.Text className="text-2xl text-white">{selectedCharity.label}</Animated.Text>
+                  <Pressable className="flex-row h-4 items-center space-x-2" onPress={() => Linking.openURL(selectedCharity.url)}>
+                    <Text style={{fontSize: 10}} className=" font-semibold text-rose-600">Learn more</Text>
+                    <Text style={{fontSize: 10}} className="text-neutral-200 font-semibold">{selectedCharity.url}</Text>
                   </Pressable>
                 </View>
               </Animated.View>
@@ -183,29 +181,31 @@ const CreateWager = () => {
             
 
           {/* Workout days Selection */}
-          <View className="flex-col justify-between">
-            <View className="flex justify-center">
-              <Text className="mb-2 text-lg text-white">Workouts per week</Text>
-              <SwitchSelector
-                options={workOutDaysOptions}
-                initial={0}
-                onPress={value => setWorkOutDays(value)}
-                buttonColor="#e87878"
-                borderColor='rgb(252 211 77)'
-                borderRadius={8}
-                borderWidth={9}
-                backgroundColor='#171717'
-                textStyle={{color: 'white'}}
-              />
-            </View>
+          <View className="flex-col space-y-3">
+            <Text  style={{fontSize: 13}} className="text-white font-semibold">WORKOUTS PER WEEK</Text>
+            <SwitchSelector
+              options={workOutDaysOptions}
+              initial={0}
+              onPress={value => setWorkOutDays(value)}
+              buttonMargin={2}
+              buttonColor="#e87878"
+              borderColor='rgb(38 38 38)'
+              borderRadius={8}
+              borderWidth={0.5}
+              hasPadding
+              backgroundColor='#0D0D0D'
+              textStyle={{color: 'white'}}
+            />
           </View>
           
           {/* Timeline */}
           <View className="flex-col w-full justify-between">
-            <View className='flex-row w-full mb-2'>
-              <Text className='text-lg text-white pr-2'>Milestones</Text>
+            <View className='flex-row h-fit w-full space-x-1 mb-2'>
+              <View className='flex-row h-justify-center items-center'>
+                <Text  style={{fontSize: 13}} className="text-white font-semibold">MILESTONES</Text>
+              </View>
               <Pressable onPress={() => setModalVisible(true)}>
-                <Ionicons name="information-circle-outline" size={30} color={'#3f4548'} />
+                <Ionicons name="information-circle-outline" size={23} color={'#3f4548'} />
               </Pressable>
             </View>
             {/* Milestone Info Modal */}
@@ -227,46 +227,56 @@ const CreateWager = () => {
                 </View>
             </Modal>
 
-            <View className="w-full flex-row justify-between items-center">
-                <View className='flex-col w-14 h-14 justify-center'>
+            <View style={{backgroundColor: "#0D0D0D"}} className="w-full flex-row justify-between items-center border-neutral-800 rounded-xl border p-2 ">
+                <View className='flex-col w-14 h-14 space-y-2 justify-center'>
                   <View className='flex w-full items-center'>
-                  <FontAwesome6 name="flag" size={20} color={'#e87878'} />
+                    <FontAwesome6 name="flag" size={20} color={'#e87878'} />
                   </View>
-                  <Text className="text-sm text-white ml-2">01/23</Text>
+                  <View className='flex w-full h-fit justify-center items-center'>
+                    <Text style={{fontSize: 12}} className="text-white">Jan 05</Text>
+                  </View>
                 </View>
 
-                <View className='flex-col w-14 h-14 justify-center'>
-                  <View className='flex w-full items-center'>
+                <View className='flex-col w-14 h-14 justify-center space-y-2 items-center'>
+                  <View className='flex w-full justify-center items-center'>
                     <Ionicons name="checkmark-done" size={20} color={'#fff'} />
                   </View>
-                  <Text className="text-sm text-white ml-2">01/23</Text>
+                  <View className='flex w-full h-fit justify-center items-center'>
+                    <Text style={{fontSize: 12}} className="text-white">Jan 05</Text>
+                  </View>
                 </View>
 
-                <View className='flex-col w-14 h-14 justify-center'>
-                  <View className='flex w-full items-center'>
+                <View className='flex-col w-14 h-14 justify-center space-y-2 items-center'>
+                  <View className='flex w-full justify-center items-center'>
                     <Ionicons name="checkmark-done" size={20} color={'#fff'} />
                   </View>
-                  <Text className="text-sm text-white ml-2">01/23</Text>
+                  <View className='flex w-full h-fit justify-center items-center'>
+                    <Text style={{fontSize: 12}} className="text-white">Jan 05</Text>
+                  </View>
                 </View>
 
-                <View className='flex-col w-14 h-14 justify-center'>
-                  <View className='flex w-full items-center'>
+                <View className='flex-col w-14 h-14 space-y-2 justify-center  items-center'>
+                  <View className='flex w-full justify-center items-center'>
                     <Ionicons name="checkmark-done" size={20} color={'#fff'} />
                   </View>
-                  <Text className="text-sm text-white ml-2">01/23</Text>
+                  <View className='flex w-full h-fit justify-center items-center'>
+                    <Text style={{fontSize: 12}} className="text-white">Jan 05</Text>
+                  </View>
                 </View>
 
-                <View className='flex-col w-14 h-14 justify-center'>
+                <View className='flex-col w-14 h-14 items-center space-y-2 justify-center'>
                   <View className='flex w-full items-center'>
-                  <FontAwesome6 name="flag-checkered" size={20} color={'#fff'} />
+                    <FontAwesome6 name="flag-checkered" size={20} color={'#fff'} />
                   </View>
-                  <Text className="text-sm text-white ml-2">01/23</Text>
+                  <View className='flex w-full h-fit justify-center items-center'>
+                    <Text style={{fontSize: 12}} className="text-white">Jan 05</Text>
+                  </View>
                 </View>
             </View>
           </View>
           {/* Submit and Cancel Buttons */}
-          <View className="flex-row h-11 w-full justify-between mt-10">
-            <TouchableOpacity className="flex w-full h-full justify-center bg-zinc-100 rounded-3xl" onPress={handleWagerCreation}>
+          <View className="flex-row h-11 w-full px-2 justify-center">
+            <TouchableOpacity className="flex w-full h-full justify-center bg-neutral-300 rounded-2xl" onPress={handleWagerCreation}>
               <Text className="text-black font-bold text-xs text-center">Send It</Text>
             </TouchableOpacity>
           </View>
