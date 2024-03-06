@@ -60,7 +60,7 @@ const WagerInfo = ({charity_id, amount, end_date}: {charity_id: string, amount: 
               </View>
               <View className="flex-row w-full space-x-2 mb-2 justify-center items-center">
               <View className='flex-row p-0.5'>
-                <Link href="/other" asChild>
+                <Link href="/wager/create" asChild>
                     <Pressable className='flex-row space-x-1 justify-center items-end'>
                       <Text style={{fontSize: 8}} className="text-neutral-100 ml-1 ">Create New Wager</Text>
                       <Ionicons name="create-outline" size={12} color="rgb(212 212 212)" />
@@ -88,7 +88,7 @@ const WagerInfo = ({charity_id, amount, end_date}: {charity_id: string, amount: 
       <View className="flex w-full justify-center items-center  mb-1">
         <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
           <View style={{backgroundColor: "#0D0D0D"}} className='flex-col border-neutral-800 rounded-xl border justify-center items-center'>
-            <View className='flex-row w-full px-2 py-1 mb-2 justify-between items-center border-neutral-800 rounded-md border-b'>
+            <View className='flex-row w-full px-2 py-1 mb-2 justify-between items-center border-neutral-800 rounded-sm border-b'>
               <Text style={{fontSize: 10}} className="text-neutral-200">{charity.name}</Text>
               <View className="flex-row space-x-1 h-3 w-fit justify-center items-center">
                 <FontAwesome6 name="flag-checkered" size={8} color={'rgb(115 115 115)'} />
@@ -105,7 +105,6 @@ const WagerInfo = ({charity_id, amount, end_date}: {charity_id: string, amount: 
                 <Link href="/other" asChild>
                     <Pressable className='flex-row space-x-1 justify-center items-end'>
                       <Text style={{fontSize: 8}} className="text-neutral-600 ml-1 ">Manage Wager</Text>
-                      <Ionicons name="pencil-outline" size={9} color="#525252" />
                     </Pressable>
                   </Link>
               </View>
@@ -141,7 +140,7 @@ const ManageWager = ({ activeWager }: { activeWager: boolean }) => {
 
 const Wager = () => {
   const [hasActiveWager, setHasActiveWager] = useState(false);
-  const [wager, setWager] = useState({id: null, user_id: null, start_date: null, end_date: null, ongoing: false, charity_id: null, amount: 0});
+  const [wager, setWager] = useState({wager_id: null, user_id: null, start_date: null, end_date: null, ongoing: false, charity_id: null, amount: 0});
   const [loading, setLoading] = useState(true);
   const { getToken } = useAuth();
   const { user } = useUser();
@@ -216,7 +215,7 @@ const Wager = () => {
           <View className='flex w-full items-start mb-4'>
             <Text  style={{fontSize: 12}} className="text-white font-semibold">TODAY</Text>
           </View>
-          <TodayStatus wager_id={wager.id} start_date={wager.start_date}/>
+          <TodayStatus wager_id={wager.wager_id} start_date={wager.start_date}/>
         </View>
 
         {/* section for overall wager progress. 28 days, 4 check point, 7 days for each check point */}
@@ -224,7 +223,7 @@ const Wager = () => {
           <View className='flex w-full items-start mb-4'>
             <Text style={{fontSize: 12}} className="text-white font-semibold">TRACKER</Text>
           </View>
-          <WagerCalendar wagerId={wager.id} start_date={wager.start_date} />
+          <WagerCalendar wagerId={wager.wager_id} start_date={wager.start_date} />
         </View>
       </View>
 

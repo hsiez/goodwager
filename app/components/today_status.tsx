@@ -1,10 +1,10 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Text, View, Pressable, StyleSheet, TextBase } from 'react-native';
+import { Text, View } from 'react-native';
 import HealthKitContext from './HealthkitContext';
-import Svg, { Rect, Defs, Stop, RadialGradient } from 'react-native-svg';
-import { InsetShadow } from 'react-native-inset-shadow';
+import * as SecureStore from 'expo-secure-store';
 import { Shadow } from 'react-native-shadow-2';
 import { Ionicons } from '@expo/vector-icons';
+
 
 
 const TodayStatus = ({ wager_id, start_date }: { wager_id: boolean, start_date }) => {
@@ -46,24 +46,13 @@ const TodayStatus = ({ wager_id, start_date }: { wager_id: boolean, start_date }
             break;
     }
 
-    useEffect(() => {
-        if (wager_id) {
-            const trueStartDate = new Date(start_date).setHours(0, 0, 0, 0);
-            const diff = new Date(today).getTime() - new Date(trueStartDate).getTime();
-            let Difference_In_Days = Math.round(diff / (1000 * 3600 * 24));
-            console.log('Difference in days: ', Difference_In_Days);
-            if (Difference_In_Days < 10) {
-                setChallengeDay([0, Difference_In_Days]);
-            } else {
-                setChallengeDay([Math.floor(Difference_In_Days / 10), Difference_In_Days % 10]);
-            }
-        }
-        
+    function getHealthData(date: string) {
+        const { healthKitAvailable, AppleHealthKit } = useContext(HealthKitContext);
         if (healthKitAvailable) {
             AppleHealthKit.getSamples(
                 {
-                    startDate: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
-                    endDate:  new Date().toISOString(),
+                    startDate: date,
+                    endDate:  date,
                     type: 'Workout', 
                 },
                 (err, results) => {
@@ -72,13 +61,48 @@ const TodayStatus = ({ wager_id, start_date }: { wager_id: boolean, start_date }
                         return;
                     }
                     if (results.length > 0) {
-                        setWorkedoutToday(true);
-                        console.log('Workout Data: ', results.length);
+                        return (results[0]);
                     }
+                    return null;
                 }
             );
         }
-    }, [wager_id, healthKitAvailable]);
+    }
+    
+
+    useEffect(() => {
+        async function getWorkoutData() {
+            const today = new Date().setHours(0, 0, 0, 0);
+            if (wager_id) {
+                const trueStartDate = new Date(start_date).setHours(0, 0, 0, 0);
+                const diff = new Date(today).getTime() - new Date(trueStartDate).getTime();
+                let Difference_In_Days = Math.round(diff / (1000 * 3600 * 24));
+                if (Difference_In_Days < 10) {
+                    setChallengeDay([0, Difference_In_Days]);
+                } else {
+                    setChallengeDay([Math.floor(Difference_In_Days / 10), Difference_In_Days % 10]);
+                }
+            }
+            
+
+                
+            const last_cached_date = await SecureStore.getItemAsync('last_cached_date');
+            const today_string = new Date(today).toISOString()
+            if (last_cached_date != today_string) {
+                const results = getHealthData(today_string);
+                if (results === null) {
+                    return;
+                }
+                let wager_tracker = JSON.parse(await SecureStore.getItemAsync('wager_tracker'));
+                wager_tracker[today].workedOut = true;
+                wager_tracker[today].workoutType = results[0].workoutType;
+                SecureStore.setItemAsync('wager_tracker', JSON.stringify(wager_tracker));
+                SecureStore.setItemAsync('last_cached_date', today_string);
+            }
+            setWorkedoutToday(true);
+        }
+        getWorkoutData();
+    }, [wager_id]);
 
     return (
         <View  className='flex w-3/5 rounded-xl'>

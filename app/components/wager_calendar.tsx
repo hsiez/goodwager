@@ -3,34 +3,26 @@ import { Modal, Pressable, Text, View, TouchableOpacity } from 'react-native';
 import { Shadow } from 'react-native-shadow-2';
 import supabaseClient from '../utils/supabase';
 import { useUser, useAuth } from '@clerk/clerk-expo';
-
+import * as SecureStore from 'expo-secure-store';
 
 
 const WagerCalendar = ({ wagerId, start_date }: { wagerId: string | null, start_date: Date }) => {
   const { user } = useUser();
-  const { getToken } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDay, setSelectedDay] = useState('');
   const [ wagerActive, setWagerActive ] = useState( (wagerId !== null) ? true : false);
+  const [wagerTrackerData, setWagerTrackerData] = useState({});
+  console.log(wagerTrackerData);
 
-  const workoutDataFlat = {};
-  for (let i = 0; i < 21; i++) {
-    var result = new Date(start_date);
-    result.setDate(result.getDate() + i);
-    workoutDataFlat[result.toString()] = {
-      workedOut: false, 
-      challengeDay: i + 1, 
-      workoutType: null
-    };
-  }
 
   const SingleDay = ({ week, index }) => {
     const date = index[0];
     const data = index[1];
     const [workoutDay, setWorkoutDay] = useState([0, 0]);
-    const [borderColor, setBorderColor] = useState("false");
+    const [borderColor, setBorderColor] = useState("");
     const [numberBg, setNumberBg] = useState('bg-neutral-900');
-    const today = new Date().setHours(0, 0, 0, 0);
+    const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+    console.log(today);
 
 
     useEffect(() => {
@@ -42,7 +34,7 @@ const WagerCalendar = ({ wagerId, start_date }: { wagerId: string | null, start_
       if ([7, 14, 21].includes(data.challengeDay)) {
         setNumberBg("bg-neutral-600");
       }
-      if (today === date || (wagerId === null && data.challengeDay === 1)) {
+      if (today === date) {
         setBorderColor("border-neutral-400");
       }
     }, [data.challengeDay]); 
@@ -95,29 +87,28 @@ const WagerCalendar = ({ wagerId, start_date }: { wagerId: string | null, start_
 
 
   useEffect(() => {
-    async function fetchData() {
-      const supabase = supabaseClient(await getToken({ template: 'supabase' }));
-      const { data, error } = await supabase
-        .from('workouts')
-        .select()
-        .eq('wager_id', wagerId)
-        .eq('user_id', user.id);
-      if (error) {
-        console.log('error', error);
-      } else {
-        console.log('Workout Data fetched');
-        for (let workout of data) {
-          workoutDataFlat[workout.date].workedOut = true;
-          workoutDataFlat[workout.date].workoutType = workout.workout_type;
+    async function setUpCalendar() {
+      if (wagerId) {
+        setWagerTrackerData(JSON.parse(await SecureStore.getItemAsync("wager_tracker")));
+      }
+      else {
+        const workoutDataFlat = {};
+        for (let i = 0; i < 21; i++) {
+          var result = new Date(start_date);
+          result.setDate(result.getDate() + i);
+          workoutDataFlat[result.toString()] = {
+            workedOut: false, 
+            challengeDay: i + 1, 
+            workoutType: null
+          };
         }
+        setWagerTrackerData(workoutDataFlat);
       }
     }
-    if (wagerId) {
-      fetchData();
-    }
+    setUpCalendar();
   }, [wagerId]);
 
-  const workoutEntries = Object.entries(workoutDataFlat);
+  const workoutEntries = Object.entries(wagerTrackerData);
   const weekOne = workoutEntries.slice(0, 7);
   const weekTwo = workoutEntries.slice(7, 14);
   const weekThree = workoutEntries.slice(14, 21);
@@ -128,9 +119,9 @@ const WagerCalendar = ({ wagerId, start_date }: { wagerId: string | null, start_
   };
   return (
     <View className="flex-col h-full justify-between w-full items-center p-1">
-      <Week week={weekOne} week_number={1} />
-      <Week week={weekTwo} week_number={2} />
-      <Week week={weekThree} week_number={3} />
+      <Week key="1" week={weekOne} week_number={1} />
+      <Week key="2" week={weekTwo} week_number={2} />
+      <Week key="3" week={weekThree} week_number={3} />
 
       <Modal
       animationType="slide"

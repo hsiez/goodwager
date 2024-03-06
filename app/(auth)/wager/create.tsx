@@ -99,17 +99,12 @@ const CreateWager = () => {
     { label: "6 Days", value: 6, accessibilityLabel: "switch-6" },
     { label: "7 Days", value: 7, accessibilityLabel: "switch-7" }
   ];
-  const startDate = new Date();
-  const endDate = new Date(startDate.getTime());
-  endDate.setDate(endDate.getDate() + 28);
+  const startDate = new Date(new Date().setHours(0, 0, 0, 0));
+  const endDate = new Date(new Date(startDate).getTime());
+  endDate.setDate(endDate.getDate() + 21);
 
   // State for info modal
   const [modalVisible, setModalVisible] = useState(false);
-
-  // Handle Wager Cancel
-  const handleWagerCancel = () => {
-    router.push('/home');
-  };
 
   // Handle Wager Creation
   const handleWagerCreation = async() => {
@@ -136,6 +131,20 @@ const CreateWager = () => {
       console.log('Wager created');
       await SecureStore.setItemAsync('wager_id', wager_id);
       console.log('Wager ID stored');
+
+      // Create and stort 21 day workout data
+      const wager_tracker = {};
+      for (let i = 0; i < 21; i++) {
+        var result = new Date(startDate);
+        result.setDate(result.getDate() + i);
+        wager_tracker[result.toString()] = {
+          workedOut: false, 
+          challengeDay: i + 1, 
+          workoutType: null
+        };
+      SecureStore.setItemAsync('wager_tracker', JSON.stringify(wager_tracker));
+      console.log('Wager Tracker stored');
+      }
       router.push('wager/index');
 
     }
