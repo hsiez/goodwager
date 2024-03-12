@@ -5,13 +5,14 @@ import { FontAwesome6 } from '@expo/vector-icons';
 import React, {useState} from 'react';
 import supabaseClient from '../../utils/supabase';
 import { useAuth, useUser } from '@clerk/clerk-expo';
-import { useRouter } from 'expo-router';
+import { useRouter } from 'expo-router'
 import * as SecureStore from 'expo-secure-store';
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from 'uuid';
 import * as Linking from 'expo-linking';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Shadow } from 'react-native-shadow-2';
+import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
 
 
 const WagerAmountStepper = ({ amounts, selectedAmount, onAmountChange }) => {
@@ -34,18 +35,42 @@ const WagerAmountStepper = ({ amounts, selectedAmount, onAmountChange }) => {
       </View>
       <View className="flex-row space-x-1">
         <TouchableOpacity onPress={decrement} className="">
-          <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
-            <View style={{backgroundColor: "#0D0D0D"}} className="p-1 border-neutral-800 border-2 flex h-15 w-15 items-center justify-center rounded-xl">
-              <Ionicons name="remove-outline" size={30} color={'#fff'} />
-            </View>
-          </Shadow>
+        <Shadow startColor={'#050505'} distance={2} style={{borderRadius: 8}}>
+              <View style={{borderColor: "#fff"}} className='flex justify-center items-center h-10 w-10 border  rounded-xl'>
+                      <Svg height="100%" width="100%" >
+                          <Defs>
+                              <RadialGradient id="grad" cx="50%" cy="50%" r="100%" fx="50%" fy="50%">
+                                  <Stop offset="35%" stopColor="#0D0D0D" stopOpacity="1" />
+                                  <Stop offset="100%" stopColor="#fff" stopOpacity="1" />
+                              </RadialGradient>
+                          
+                          </Defs>
+                          <Rect x="0" y="0" width="100%" height="100%" fill="url(#grad)" rx={11} ry={11}/>
+                          <View className="flex h-full w-full justify-center items-center ">
+                            <Ionicons name="remove-outline" size={20} color={'#fff'} />
+                          </View>
+                      </Svg>
+              </View>
+            </Shadow>
         </TouchableOpacity>
         <TouchableOpacity onPress={increment} className="">
-          <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
-            <View style={{backgroundColor: "#0D0D0D"}} className="p-1 border-neutral-800 border-2 flex h-15 w-15 items-center justify-center rounded-xl">
-              <Ionicons name="add-outline" size={30} color={'#fff'}/>
-            </View>
-          </Shadow>
+          <Shadow startColor={'#050505'} distance={2} style={{borderRadius: 8}}>
+              <View style={{borderColor: "#fff"}} className='flex justify-center items-center h-10 w-10 border  rounded-xl'>
+                      <Svg height="100%" width="100%" >
+                          <Defs>
+                              <RadialGradient id="grad" cx="50%" cy="50%" r="100%" fx="50%" fy="50%">
+                                  <Stop offset="35%" stopColor="#0D0D0D" stopOpacity="1" />
+                                  <Stop offset="100%" stopColor="#fff" stopOpacity="1" />
+                              </RadialGradient>
+                          
+                          </Defs>
+                          <Rect x="0" y="0" width="100%" height="100%" fill="url(#grad)" rx={11} ry={11}/>
+                          <View className="flex h-full w-full justify-center items-center ">
+                            <Ionicons name="add-outline" size={20} color={'#fff'} />
+                          </View>
+                      </Svg>
+              </View>
+            </Shadow>
         </TouchableOpacity>
       </View>
     </View>
@@ -57,7 +82,7 @@ const CreateWager = () => {
   // User Data
   const { user } = useUser();
   const { getToken } = useAuth();
-  const router = useRouter();
+  const nav = useRouter();
   
   // State for wager amount
   const [selectedAmount, setSelectedAmount] = useState(20);
@@ -135,11 +160,11 @@ const CreateWager = () => {
           end_date: endDate,
           workout_freq: workOutDays,
           token: 'token',
-          status: 'alive',
-          ongoing: true
+          status: 'ongoing',
+          last_date_completed: null
         })
     if (error) {
-      console.log('error', error);
+      console.log('error inserting new wager', error);
     } else {
       console.log('Wager created');
       await SecureStore.setItemAsync('wager_id', wager_id);
@@ -158,7 +183,7 @@ const CreateWager = () => {
       SecureStore.setItemAsync('wager_tracker', JSON.stringify(wager_tracker));
       console.log('Wager Tracker stored');
       }
-      router.replace("/wager/current_wager");
+      nav.back();
 
     }
 

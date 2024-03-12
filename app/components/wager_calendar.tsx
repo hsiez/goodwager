@@ -12,7 +12,6 @@ const WagerCalendar = ({ wagerId, start_date }: { wagerId: string | null, start_
   const [selectedDay, setSelectedDay] = useState('');
   const [ wagerActive, setWagerActive ] = useState( (wagerId !== null) ? true : false);
   const [wagerTrackerData, setWagerTrackerData] = useState({});
-  console.log(wagerTrackerData);
 
 
   const SingleDay = ({ week, index }) => {
@@ -22,7 +21,6 @@ const WagerCalendar = ({ wagerId, start_date }: { wagerId: string | null, start_
     const [borderColor, setBorderColor] = useState("");
     const [numberBg, setNumberBg] = useState('bg-neutral-900');
     const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-    console.log(today);
 
 
     useEffect(() => {

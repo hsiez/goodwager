@@ -56,9 +56,10 @@ const TabsPage = () => {
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} />,
           tabBarLabel: 'Friends',
-          headerShown: true,
+          headerShown: false,
           headerStyle: {
             backgroundColor: "#090909", // Correct property for background color
+            borderColor: "#090909",
           },
           headerTintColor: '#fff'
         }}
