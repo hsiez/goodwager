@@ -141,7 +141,7 @@ const ManageWager = ({ activeWager }: { activeWager: boolean }) => {
 const Wager = () => {
   const isFocused = useIsFocused();
   const [hasActiveWager, setHasActiveWager] = useState(false);
-  const [wager, setWager] = useState({wager_id: null, user_id: null, start_date: null, end_date: null, status: null, charity_id: null, amount: 0, last_date_completed: null});
+  const [wager, setWager] = useState({wager_id: null, user_id: null, start_date: null, end_date: null, status: null, charity_id: null, amount: 0, last_date_completed: null, streak: 0});
   const [loading, setLoading] = useState(true);
   const { getToken } = useAuth();
   const { user } = useUser();
@@ -232,7 +232,7 @@ const Wager = () => {
           <View className='flex w-full items-start mb-4'>
             <Text  style={{fontSize: 12}} className="text-white font-semibold">TODAY</Text>
           </View>
-          <TodayStatus wager_id={wager.wager_id} start_date={wager.start_date} last_date_completed={wager.last_date_completed}/>
+          <TodayStatus wager_id={wager.wager_id} start_date={wager.start_date} last_date_completed={new Date(wager.last_date_completed).toISOString()} streak={wager.streak}/>
         </View>
 
         {/* section for overall wager progress. 28 days, 4 check point, 7 days for each check point */}

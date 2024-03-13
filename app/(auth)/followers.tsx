@@ -43,10 +43,11 @@ const FollowerCard = ({follower}: {follower: Follower}) => {
 
     async function storeStateNotification() {
         const supabase = supabaseClient(await getToken({ template: 'supabase' }));
+        const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
         const { error } = await supabase
             .from('notifications')
             .insert(
-                { sender: userId, receiver: follower.name, receiver_status: statusText }
+                { sender: userId, receiver: follower.name, receiver_status: statusText, created_at: today }
             );
         if (error) {
             console.log('error storing notification: supabase', error);
@@ -135,7 +136,7 @@ const FollowerCard = ({follower}: {follower: Follower}) => {
                                     <Svg height="100%" width="100%" >
                                         <Defs>
                                             <RadialGradient id="grad" cx="50%" cy="50%" r="100%" fx="50%" fy="50%">
-                                                <Stop offset="35%" stopColor="#0D0D0D" stopOpacity="1" />
+                                                <Stop offset="40%" stopColor="#0D0D0D" stopOpacity="1" />
                                                 <Stop offset="100%" stopColor={buttonPressed ? getColorAfterPress() : notButtonColorDefault} stopOpacity="1" />
                                             </RadialGradient>
                                         
@@ -296,8 +297,12 @@ const FollowersList = () => {
 
     return (
         <View style={{backgroundColor: "#090909"}} className="flex-col h-full items-center pt-10">
-            <View className="mt-10 mb-3 pl-2 w-full h-auto">
-            <Text style={{fontSize: 12}} className="text-white font-semibold">Motivate Your Friends</Text>
+            <View className=" flex-row mt-10 mb-3 px-4 w-full justify-between h-auto items-center">
+                <Text style={{fontSize: 12}} className="text-white font-semibold">Motivate Your Friends</Text>
+                {/* button to open invite module */}
+                <Pressable className='flex-row px-4 py-1 border border-neutral-800 rounded-xl justify-center items-center'>
+                    <Text style={{fontSize: 10}} className="text-white font-semibold">Invite</Text>
+                </Pressable>
             </View>
             <ScrollView contentContainerStyle={{height: "80%", width: "95%", paddingHorizontal: 6}}>
                 {followers.map((follower) => (
