@@ -14,6 +14,7 @@ import charity_map from '../../utils/charity_map';
 import { Shadow } from 'react-native-shadow-2';
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
+import HealthKitContext from '../../components/HealthkitContext';
 //import Svg { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 
 
@@ -145,16 +146,54 @@ const Wager = () => {
   const [loading, setLoading] = useState(true);
   const { getToken } = useAuth();
   const { user } = useUser();
+  const { healthKitAvailable, AppleHealthKit } = useContext(HealthKitContext);
   const tzone = Localization.getCalendars()[0].timeZone;
+  const [workedoutToday, setWorkedoutToday] = useState(false);
+
+  function handleHealthData(date: string) {
+      if (healthKitAvailable) {
+          const end_date = new Date(date);
+          end_date.setDate(end_date.getDate() + 1);
+          AppleHealthKit.getSamples(
+              {
+                  startDate: date,
+                  endDate: end_date,
+                  type: 'Workout', 
+              },
+              (err, results) => {
+                  if (err) {
+                      console.log('error', err);
+                      return;
+                  }
+                  if (results.length > 0) {
+                      console.log('Workout found', results);
+                      setWorkedoutToday(true);
+                  }
+              }
+          );
+      }
+  }
+  async function updateWagerWithWorkout(today) {
+      console.log('updating wager with workout');
+      const supabase = supabaseClient(await getToken({ template: 'supabase' }));
+      const { error } = await supabase
+      .from('wagers')
+      .update({ last_date_completed: today, streak: wager.streak + 1 })
+      .eq('wager_id', wager.wager_id);
+      if (error) {
+          console.log('error updating last_date_completed', error);
+          throw error;
+      }
+      setWager({...wager, last_date_completed: today, streak: wager.streak + 1});
+  }
 
   useEffect(() => {
     let isSubscribed = true;
   
     const fetchWager = async () => {
       try {
-        console.log(await TaskManager.getRegisteredTasksAsync())
-        console.log(await SecureStore.getItemAsync('wager_id'))
         console.log('fetching wager');
+        console.log(await getToken());
         let supabaseAccessToken: string | null = null;
         try {
           supabaseAccessToken = await getToken({ template: 'supabase' });
@@ -178,8 +217,8 @@ const Wager = () => {
         }
         
         if (isSubscribed) {
+          const today = new Date(new Date().setHours(0, 0, 0, 0));
           if (data.length > 0) {
-            const today = new Date(new Date().setHours(0, 0, 0, 0));
             const last_date_completed = new Date(data[0].last_date_completed);
              // Check if last complete day is less then 2 days ago
             
@@ -197,6 +236,22 @@ const Wager = () => {
                 .eq('wager_id', data[0].wager_id);
               if (error) {
                 console.log('error updating wager status to \'failed \'', error);
+              }
+            }
+          }
+
+          if (hasActiveWager) {
+            if (new Date(wager.last_date_completed) === today) {
+              console.log('Workout already logged for today');
+              setWorkedoutToday(true);
+            }
+            else {
+              handleHealthData(today.toISOString());
+              if (workedoutToday) {
+                updateWagerWithWorkout(today.toISOString());
+                const tracker = JSON.parse(await SecureStore.getItemAsync("wager_tracker"));
+                tracker[today.toISOString()].workedOut = true;
+                await SecureStore.setItemAsync("wager_tracker", JSON.stringify(tracker));
               }
             }
           }
@@ -223,7 +278,7 @@ const Wager = () => {
 
   return (
     <View style={{backgroundColor: "#090909"}} className="flex-col h-full items-center ">
-      <View className='flex-col w-full px-5 h-full py-10 justify-between items-center'>
+      <View className='flex-col w-full px-5 h-full py-10 justify-between items-center '>
         {/* If there is an active wager, show the wager info */}
         <WagerInfo latest_wager={wager} /> 
  
@@ -232,7 +287,7 @@ const Wager = () => {
           <View className='flex w-full items-start mb-4'>
             <Text  style={{fontSize: 12}} className="text-white font-semibold">TODAY</Text>
           </View>
-          <TodayStatus wager_id={wager.wager_id} start_date={wager.start_date} last_date_completed={new Date(wager.last_date_completed).toISOString()} streak={wager.streak}/>
+          <TodayStatus start_date={wager.start_date}  worked_out_today={workedoutToday}/>
         </View>
 
         {/* section for overall wager progress. 28 days, 4 check point, 7 days for each check point */}
@@ -240,7 +295,7 @@ const Wager = () => {
           <View className='flex w-full items-start mb-4'>
             <Text style={{fontSize: 12}} className="text-white font-semibold">TRACKER</Text>
           </View>
-          <WagerCalendar wagerId={wager.wager_id} start_date={wager.start_date} />
+          <WagerCalendar last_date_completed={wager.last_date_completed} start_date={wager.start_date} />
         </View>
       </View>
 

@@ -6,11 +6,11 @@ import { useUser, useAuth } from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
 
 
-const WagerCalendar = ({ wagerId, start_date }: { wagerId: string | null, start_date: Date }) => {
+const WagerCalendar = ({ last_date_completed, start_date }: { last_date_completed: string | null, start_date: Date }) => {
   const { user } = useUser();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDay, setSelectedDay] = useState('');
-  const [ wagerActive, setWagerActive ] = useState( (wagerId !== null) ? true : false);
+  const [ wagerActive, setWagerActive ] = useState( (start_date !== null) ? true : false);
   const [wagerTrackerData, setWagerTrackerData] = useState({});
 
 
@@ -86,25 +86,28 @@ const WagerCalendar = ({ wagerId, start_date }: { wagerId: string | null, start_
 
   useEffect(() => {
     async function setUpCalendar() {
-      if (wagerId) {
+      if (start_date !== null) {
         setWagerTrackerData(JSON.parse(await SecureStore.getItemAsync("wager_tracker")));
       }
-      else {
-        const workoutDataFlat = {};
-        for (let i = 0; i < 21; i++) {
-          var result = new Date(start_date);
-          result.setDate(result.getDate() + i);
-          workoutDataFlat[result.toString()] = {
-            workedOut: false, 
-            challengeDay: i + 1, 
-            workoutType: null
-          };
-        }
-        setWagerTrackerData(workoutDataFlat);
-      }
     }
-    setUpCalendar();
-  }, [wagerId]);
+    if (start_date !== null){
+      setUpCalendar();
+    }
+    else {
+      console.log("Setting up calendar");
+          const workoutDataFlat = {};
+          for (let i = 0; i < 21; i++) {
+            var result = new Date(start_date);
+            result.setDate(result.getDate() + i);
+            workoutDataFlat[result.toString()] = {
+              workedOut: false, 
+              challengeDay: i + 1, 
+              workoutType: null
+            };
+          setWagerTrackerData(workoutDataFlat);
+        }
+    }
+  }, [last_date_completed, start_date]);
 
   const workoutEntries = Object.entries(wagerTrackerData);
   const weekOne = workoutEntries.slice(0, 7);

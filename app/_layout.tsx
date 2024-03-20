@@ -4,6 +4,7 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import HealthKitProvider from './components/HealthKitProvider';
+import { StatusBar } from 'expo-status-bar';
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY
 
@@ -52,6 +53,7 @@ const RootLayout = () => {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <HealthKitProvider>
           <InitialLayout />
+          <StatusBar style="light" />
         </HealthKitProvider>
       </GestureHandlerRootView>
     </ClerkProvider>

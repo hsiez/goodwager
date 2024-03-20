@@ -9,13 +9,10 @@ import { useAuth } from '@clerk/clerk-expo';
 import { useIsFocused } from '@react-navigation/native';
 import Svg, { Defs, RadialGradient, Stop, Circle } from "react-native-svg";
 
-const TodayStatus = ({ wager_id, start_date, last_date_completed, streak }: { wager_id: string, start_date: string, last_date_completed: string, streak: number }) => {
+const TodayStatus = ({ start_date, worked_out_today }: {start_date: string, worked_out_today: boolean }) => {
     const isFocused = useIsFocused();
-    const { healthKitAvailable, AppleHealthKit } = useContext(HealthKitContext);
-    const { userId, getToken } = useAuth();
-    const [workedOutToday, setWorkedoutToday] = useState(false);
-    const [workoutData, setWorkoutData] = useState(null);
     const [challengeDay, setChallengeDay] = useState([0, 0]);
+    console.log("TodayStatus: ", challengeDay);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [notifications, setNotifications] = useState([]);
     let statusColor = 'black';
@@ -28,7 +25,7 @@ const TodayStatus = ({ wager_id, start_date, last_date_completed, streak }: { wa
     }
 
 
-    switch (workedOutToday) {
+    switch (worked_out_today) {
         case true:
             statusColor = '#71BC78';
             statusText = 'Workout Detected';
@@ -50,43 +47,6 @@ const TodayStatus = ({ wager_id, start_date, last_date_completed, streak }: { wa
             break;
         default:
             break;
-    }
-
-    function handleHealthData(date: string) {
-        if (healthKitAvailable) {
-            const end_date = new Date(date);
-            end_date.setDate(end_date.getDate() + 1);
-            AppleHealthKit.getSamples(
-                {
-                    startDate: date,
-                    endDate: end_date,
-                    type: 'Workout', 
-                },
-                (err, results) => {
-                    if (err) {
-                        console.log('error', err);
-                        return;
-                    }
-                    if (results.length > 0) {
-                        console.log('Workout found', results);
-                        setWorkedoutToday(true);
-                        setWorkoutData(results[0]);
-                    }
-                }
-            );
-        }
-    }
-    async function updateWagerWithWorkout(today) {
-        console.log('updating wager with workout');
-        const supabase = supabaseClient(await getToken({ template: 'supabase' }));
-        const { error } = await supabase
-        .from('wagers')
-        .update({ last_date_completed: today, streak: streak + 1 })
-        .eq('wager_id', wager_id);
-        if (error) {
-            console.log('error updating last_date_completed', error);
-            throw error;
-        }
     }
     
     async function fetchNotifications() {
@@ -180,38 +140,25 @@ const TodayStatus = ({ wager_id, start_date, last_date_completed, streak }: { wa
     }
 
     useEffect(() => {
-        async function getWorkoutData() {
+        async function setWorkoutDay() {
+            if (!start_date) {
+                return;
+            }
             const today = new Date(new Date().setHours(0, 0, 0, 0));
-            const today_string = today.toISOString();
+            const trueStartDate = new Date(start_date).setHours(0, 0, 0, 0);
             
-            if (wager_id) {
-                if (last_date_completed === today.toISOString()) {
-                    setWorkedoutToday(true);
-                } else {
-                    handleHealthData(today_string);
-                    if (workedOutToday) {
-                        await updateWagerWithWorkout(today_string);
-                        // Update the calendar with the workout data
-                        let wager_tracker = JSON.parse(await SecureStore.getItemAsync('wager_tracker'));
-                        wager_tracker[today_string].workedOut = true;
-                        wager_tracker[today_string].workoutType = workoutData.workoutType;
-                        SecureStore.setItemAsync('wager_tracker', JSON.stringify(wager_tracker));
-                    }
-                }
-                const trueStartDate = new Date(start_date).setHours(0, 0, 0, 0);
-                
-                const diff = new Date(today).getTime() - new Date(trueStartDate).getTime();
-                let Difference_In_Days = Math.round(diff / (1000 * 3600 * 24));
-                if (Difference_In_Days < 10) {
-                    setChallengeDay([0, Difference_In_Days]);
-                } else {
-                    setChallengeDay([Math.floor(Difference_In_Days / 10), Difference_In_Days % 10]);
-                }
+            const diff = new Date(today).getTime() - new Date(trueStartDate).getTime();
+            let Difference_In_Days = Math.round(diff / (1000 * 3600 * 24));
+            
+            if (Difference_In_Days < 10) {
+                setChallengeDay([0, Difference_In_Days]);
+            } else {
+                setChallengeDay([Math.floor(Difference_In_Days / 10), Difference_In_Days % 10]);
             }
         }
-        getWorkoutData();
+        setWorkoutDay();
         fetchNotifications();
-    }, [wager_id, isFocused]);
+    }, [start_date, worked_out_today, isFocused]);
 
     return (
         <View  className='flex w-3/5 rounded-xl'>
