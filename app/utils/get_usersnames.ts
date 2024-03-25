@@ -1,12 +1,18 @@
-async function fetchUsername(username: string): Promise<any> {
-    const response = await fetch(`https://api.clerk.com/v1/users?username=${username}`, {
-        method: 'GET',
+async function fetchUsername(username: string, token:string): Promise<any> {
+    const url = 'https://icpujtrkzstykzmcsutm.supabase.co/functions/v1/get_usernames';
+    console.log(url);
+    const response = await fetch(url, {
+        method: 'POST',
         headers: {
-            'Authorization': `Bearer ${process.env.CLERK_SECRET_KEY}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ "username": username })
+
     });
+
     const data = await response.json();
-    console.log(data);
+
+    return data;
 }
 export default fetchUsername;

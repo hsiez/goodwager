@@ -53,7 +53,6 @@ const RootLayout = () => {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <HealthKitProvider>
           <InitialLayout />
-          <StatusBar style="light" />
         </HealthKitProvider>
       </GestureHandlerRootView>
     </ClerkProvider>

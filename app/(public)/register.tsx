@@ -77,7 +77,6 @@ const Register = () => {
   return (
     <KeyboardAvoidingView style={styles.container}  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <Stack.Screen options={{ headerBackVisible: !pendingVerification }} />
-      <Spinner visible={loading} />
 
       {!pendingVerification && (
         <>

@@ -1,24 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, Button, ScrollView, Pressable } from 'react-native';
+import { View, Text, Image, ScrollView, Pressable } from 'react-native';
 import { useAuth } from '@clerk/clerk-expo';
 import supabaseClient from '../utils/supabase';
 import { Shadow } from 'react-native-shadow-2';
 import { Ionicons } from '@expo/vector-icons';
+import fetchUsername from '../utils/get_usersnames';
 import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
-//import * as Toast from 'expo-toast';
-// Define the Follower type
-type Follower = {
-  name: string;
-  wager: boolean;
-  workout_today: boolean;
-  profilePic: string;
-  checkpoint: string | null;
-  challengeDay: string | null;
-};
+
 
 // Define the FollowerCard component
-const FollowerCard = ({follower}: {follower: Follower}) => {
+const FollowerCard = ({follower}: {follower}) => {
     const { userId, getToken } = useAuth();
+    const [followerData, setFollowerData] = useState(null);
     const [buttonPressed, setButtonPressed] = useState(false);
     const [notificationId, setNotificationId] = useState(null);
 
@@ -79,7 +72,7 @@ const FollowerCard = ({follower}: {follower: Follower}) => {
             <Ionicons name="barbell-outline" size={20} color={buttonPressed ? getColorAfterPress() : notButtonColorDefault} />
         )
     }
-
+    
     useEffect(() => {
         async function fetchNotData() {
             const supabase = supabaseClient(await getToken({ template: 'supabase' }));
@@ -109,13 +102,21 @@ const FollowerCard = ({follower}: {follower: Follower}) => {
             }
 
         }
+        async function fetchFollowerData() {
+            const data = await fetchUsername(follower.followee_un, await getToken({ template: 'supabase' }));
+            setFollowerData(data[0]);
+            
+        }
         fetchNotData();
+        fetchFollowerData();
         setButtonText(follower.workout_today ? "LFG!" : "Get Up!");
         setStatusColor(follower.workout_today ? "#71BC78" : "rgb(244 63 94)");
         setStatusText(follower.workout_today ? "Exercised Today" : "Exercise Pending");
-    }, [follower.workout_today]);
+    }, [follower]);
 
-
+    if (!followerData) {
+        return null;
+    }
     return (
         <View className='flex h-20 w-full mb-4'>
             <Pressable onPress={handlePress} disabled={buttonPressed} >
@@ -123,10 +124,10 @@ const FollowerCard = ({follower}: {follower: Follower}) => {
                 <View style={{backgroundColor: "#0D0D0D"}} className="flex-col h-full  w-full justify-between items-center border-neutral-800 rounded-xl border px-2">
                     <View className='h-full w-full flex-row justify-between items-center'>
                         <View className='h-full justify-center items-center'>
-                            <Image source={{uri: follower.profilePic}} style={{width: 40, height: 40, borderRadius: 50}} />
+                            <Image source={{uri: followerData.image_url}} style={{width: 40, height: 40, borderRadius: 50}} />
                         </View>
                         <View className='flex-col justify-center items-start w-1/3'>
-                            <Text className="text-lg text-neutral-200">{follower.name}</Text>
+                            <Text className="text-lg text-neutral-200">{followerData.first_name} {followerData.last_name}</Text>
                             <Text className="text-xs text-neutral-600">{statusText}</Text>
                         </View>
                         <View className='flex-col h-fit w-fit space-y-1'>
@@ -162,83 +163,8 @@ const FollowerCard = ({follower}: {follower: Follower}) => {
     );
 };
 
-// Define the FollowersList component
-const fakeFollowers: Follower[] = [
-    {
-        name: 'Benny Pham',
-        wager: true,
-        workout_today: true,
-        profilePic: 'https://via.placeholder.com/150',
-        checkpoint: '2',
-        challengeDay: '13',
-    },
-    {
-        name: 'John Pham',
-        wager: true,
-        workout_today: false,
-        profilePic: 'https://via.placeholder.com/150',
-        checkpoint: '1',
-        challengeDay: '4',
-    },
-    {
-        name: 'Patrick Tumbucom',
-        wager: false,
-        workout_today: true,
-        profilePic: 'https://via.placeholder.com/150',
-        checkpoint: null,
-        challengeDay: null,
-    },
-    {
-        name: 'Jacob Johnson',
-        wager: false,
-        workout_today: true,
-        profilePic: 'https://via.placeholder.com/150',
-        checkpoint: null,
-        challengeDay: null,
-    },
-    {
-        name: 'Action Bronson',
-        wager: true,
-        workout_today: false,
-        profilePic: 'https://via.placeholder.com/150',
-        checkpoint: "1",
-        challengeDay: "7",
-    },
-    {
-        name: 'Uncle Iroh',
-        wager: true,
-        workout_today: true,
-        profilePic: 'https://via.placeholder.com/150',
-        checkpoint: '2',
-        challengeDay: '13',
-    },
-    {
-        name: 'Kobe Bryant',
-        wager: true,
-        workout_today: false,
-        profilePic: 'https://via.placeholder.com/150',
-        checkpoint: '1',
-        challengeDay: '4',
-    },
-    {
-        name: 'John Wislon',
-        wager: false,
-        workout_today: true,
-        profilePic: 'https://via.placeholder.com/150',
-        checkpoint: null,
-        challengeDay: null,
-    },
-    {
-        name: 'Ken Watanabe',
-        wager: true,
-        workout_today: false,
-        profilePic: 'https://via.placeholder.com/150',
-        checkpoint: "1",
-        challengeDay: "7",
-    }
-]
 const FollowersList = () => {
-    const [followers, setFollowers] = useState<Follower[]>(fakeFollowers);
+    const [followers, setFollowers] = useState([]);
     const { getToken, userId } = useAuth();
     const [loading, setLoading] = useState(true);
 
@@ -273,7 +199,7 @@ const FollowersList = () => {
             if (isSubscribed) {
                 if (data.length > 0) {
                 setFollowers(data);
-
+                console.log(data);
                 }
                 setLoading(false);
             }
@@ -306,7 +232,7 @@ const FollowersList = () => {
             </View>
             <ScrollView contentContainerStyle={{height: "80%", width: "95%", paddingHorizontal: 6}}>
                 {followers.map((follower) => (
-                <FollowerCard key={follower.name} follower={follower} />
+                <FollowerCard key={follower.followee_un} follower={follower} />
                 ))}
             </ScrollView>
         </View>

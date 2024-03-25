@@ -15,15 +15,7 @@ import { Shadow } from 'react-native-shadow-2';
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
 import HealthKitContext from '../../components/HealthkitContext';
-//import Svg { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
-
-
-
-type CharityInfo = {
-  name: string | null;
-  url: string | null;
-  type: string | null;
-};
+//import Svg { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';s
 
 
 const WagerInfo = ({latest_wager}: {latest_wager: any}) => {
@@ -57,6 +49,7 @@ const WagerInfo = ({latest_wager}: {latest_wager: any}) => {
     }
   }
   useEffect(() => {
+    
     if (latest_wager.wager_id != null) {
       if (latest_wager.status === 'ongoing') {
         setStatusTitle('ONGOING WAGER');
@@ -189,6 +182,7 @@ const Wager = () => {
 
   useEffect(() => {
     let isSubscribed = true;
+    setLoading(true);
   
     const fetchWager = async () => {
       try {
@@ -276,6 +270,43 @@ const Wager = () => {
   }, [user, getToken, isFocused]);
 
 
+  if (loading) {
+    return (
+      <View style={{backgroundColor: "#090909"}} className="flex-col h-full items-center ">
+        <View className='flex-col w-full px-5 h-full py-10 justify-between items-center '>
+
+          {/* wager info loading box */}
+          <View className='flex min-w-full items-start'>
+            <View style={{height: 14, width:"100%"}} className='flex-col justify-between mb-3 '/>
+            <View className="flex w-full justify-center items-center  mb-1">
+              <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
+                <View style={{height:103, backgroundColor: "#0D0D0D"}} className='flex-col min-w-full border-neutral-800 rounded-xl border justify-center items-center'>
+                </View>
+              </Shadow>
+            </View>
+          </View>
+  
+          {/* today status loading box*/}
+          <View className='flex-col w-full h-1/4 justify-center items-center'>
+            <View style={{height: 14}} className='flex w-full items-start mb-4'/>
+            <View  className='flex w-3/5 rounded-xl'>
+              <Shadow startColor={'#050505'} paintInside={true} distance={4} style={{borderRadius: 12}}>
+                <View style={{backgroundColor: "#0D0D0D"}} className="flex h-full min-w-full justify-center items-center border-neutral-800 rounded-xl border"/>
+              </Shadow>
+            </View>
+          </View>
+
+          {/* section for overall wager progress. 28 days, 4 check point, 7 days for each check point */}
+          <View className='flex-col w-full h-1/4 justify-center items-center'>
+            <View style={{height: 14}} className='flex w-full items-start mb-4'/>
+            <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 10, flexDirection: "row", width: '100%', height:"100%" }}>
+              <View  style={{backgroundColor: "#090909"}} className="flex-col h-full min-w-full justify-between items-center p-3 border rounded-xl border-neutral-800"/>
+            </Shadow>
+          </View>
+        </View>
+    </View>
+    );
+  }
   return (
     <View style={{backgroundColor: "#090909"}} className="flex-col h-full items-center ">
       <View className='flex-col w-full px-5 h-full py-10 justify-between items-center '>

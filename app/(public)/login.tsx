@@ -34,7 +34,6 @@ const Login = () => {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <Spinner visible={loading} />
       <View className='flex-col w-full justify-center items-center'>
         <View className='mb-2'>
           <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>

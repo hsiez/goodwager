@@ -1,23 +1,53 @@
 import { View, Text, Pressable, Modal, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import { Shadow } from 'react-native-shadow-2';
 import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
 import { Ionicons } from '@expo/vector-icons';
 import { ScrollView } from 'react-native-gesture-handler';
 import UserSearch from '../components/user_search';
-import fetchUsernames from '../utils/get_usersnames';
+import SearchBar from '../components/search_bar';
+import supabaseClient from '../utils/supabase';
+import fetchUsername from '../utils/get_usersnames';
+import Wager from './wager/current_wager';
+import { useIsFocused } from '@react-navigation/native';
+
 
 const Profile = () => {
   const { user } = useUser();
-  const { signOut } = useAuth();
+  const { signOut, getToken, userId } = useAuth();
+  const isFocused = useIsFocused();
   
   const [firstName, setFirstName] = useState(user.firstName);
   const [lastName, setLastName] = useState(user.lastName);
+  const [allWagers, setAllWagers] = useState([]);
+  const [amountDonated, setAmountDonated] = useState(0);
   const [modalUnfriendVisible, setModalUnfriendVisible] = useState(false);
   const [modalAddFriendVisible, setModalAddFriendVisible] = useState(false);
   const [selecteUser, setSelectedUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = await getToken({ template: 'supabase' });
+      const supabase = supabaseClient(token);
+      const { data, error } = await supabase
+        .from('wagers')
+        .select('*')
+        .eq('user_id', userId);
+      if (error) {
+        console.error('Error fetching all wagers for profile:', error);
+      }
+      if (data.length > 0) {
+        setAllWagers(data);
+        const failed = data.filter(wager => wager.status === "failed");
+        setAmountDonated(failed.reduce((accumulator, current) => {
+          return accumulator + current.amount;
+        }, 0));
+      }
+    };
+    fetchUser();
+  }, [isFocused, userId]);
 
   const onSaveUser = async () => {
     try {
@@ -31,8 +61,6 @@ const Profile = () => {
       console.log('🚀 ~ file: profile.tsx:18 ~ onSaveUser ~ e', JSON.stringify(e));
     }
   };
-
-
 
   const StatDisplay = ({ color, stat, is_money }) => {
     return (
@@ -78,18 +106,30 @@ const Profile = () => {
   }
 
   const FriendItem = ({ friend, onDelete }) => {
+    const [follower_data, setFollowerData] = useState(null);
+    useEffect(() => {
+      async function fetchData() {
+        const data = await fetchUsername(friend.followee_un, await getToken({ template: 'supabase' }));
+        setFollowerData(data[0]);
+      }
+      fetchData();
+    }
+    , [friend]);
+    if (!follower_data) {
+      return null;
+    }
     return (
       <View className="flex-row w-full h-20 justify-between items-center mt-1 px-2 border rounded-xl border-neutral-800" style={{ backgroundColor: '#0D0D0D' }}>
           <View className='flex h-11 w-11 rounded-full p-0.5 border border-neutral-400 justify-center items-center'>
-            <Image source={{uri: friend.pic}} style={{width: "100%", height: "100%", borderRadius: 50}} />
+            <Image source={{uri: follower_data.image_url}} style={{width: "100%", height: "100%", borderRadius: 50}} />
           </View>
           <View className="flex-col space-y-1 items-center">
-            <Text style={{color: "#fff"}} className="text-lg">{friend.name}</Text>
-            <Text style={{color: "#fff"}} className="text-xs">@{friend.username}</Text>
+            <Text style={{color: "#fff"}} className="text-lg">{follower_data.first_name} {follower_data.last_name}</Text>
+            <Text style={{color: "#fff"}} className="text-xs">@{follower_data.username}</Text>
           </View>
           <TouchableOpacity
             className='flex-row justify-center items-center h-fit w-fit px-1 py-1 border border-neutral-800 rounded-lg'
-            onPress={() => {setModalUnfriendVisible(true); setSelectedUser(friend)}}
+            onPress={() => {setModalUnfriendVisible(true); setSelectedUser(follower_data)}}
           >
              <Ionicons name="close-outline" size={18} color="rgb(115 115 115)" />
           </TouchableOpacity>
@@ -122,6 +162,7 @@ const Profile = () => {
   const FriendList = () => {
     // Sample data for the list
     const [friends, setFriends] = useState(fake_friends);
+    const [followers, setFollowers] = useState([]);
   
     // The delete function
     const onDelete = (friendId) => {
@@ -130,32 +171,33 @@ const Profile = () => {
       
       // If you have a backend to sync with, you would also send a request to delete the friend from the database
     };
-    return (
-      <View className='flex-row  w-full h-3/5 justify-center items-center'>
-        <Shadow startColor={'#050505'} distance={2} >
-        {/* The SwipeListView component from react-native-swipe-list-view 
-        <SwipeListView
-          data={friends}
-          renderItem={renderItem}
-          renderHiddenItem={renderHiddenItem}
-          rightOpenValue={-30}
-          previewRowKey={'1'}
-          previewOpenValue={-30}
-          previewOpenDelay={1000}
-          disableRightSwipe
-          previewRepeat
-          onRowDidOpen={(rowKey) => {
-            console.log('This row opened', rowKey);
-          }}
-          className='border-neutral-800 rounded-xl border'
-          style={{ backgroundColor: "#0D0D0D", height: "100%", width: "100%", paddingHorizontal: 8}}
-        />
-        */}
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{alignItems: 'center', paddingBottom:5}} className='flex-col pb-0.5 px-1 w-full h-full border rounded-xl border-neutral-800'>
-          {friends.map((friend) => (
-            <FriendItem key={friend.id} friend={friend} onDelete={onDelete} />
-          ))}
+    useEffect(() => {
+      // Fetch the friends from the database
+      async function fetchFriends() {
+        const token = await getToken({ template: 'supabase' });
+        const supabase = supabaseClient(token);
+        const { data, error } = await supabase
+          .from('followers')
+          .select()
+          .eq('follower', userId);
+        setFollowers(data);
+      }
+      fetchFriends();
+    }
+    , [userId]);
+    return (
+      <View className='flex-row w-full h-3/5 justify-center items-center'>
+        <Shadow startColor={'#050505'} distance={2}>
+          <ScrollView 
+            showsVerticalScrollIndicator={false} 
+            contentContainerStyle={{alignItems: 'center', paddingBottom:5}} 
+            className='flex-1 pb-0.5 px-1 w-full h-full border rounded-xl border-neutral-800'
+            style={{minWidth: '100%'}} // Set a minimum width to maintain full size
+          >
+            {followers.map((follower) => (
+                  <FriendItem key={follower.followee} friend={follower} onDelete={onDelete} />
+                ))}
         </ScrollView>
         </Shadow>
       </View>
@@ -200,11 +242,11 @@ const Profile = () => {
           <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
             <View style={{backgroundColor: "#0D0D0D"}} className='flex-row w-full h-24 border-neutral-800 rounded-xl border justify-between px-4 items-center'>
               <View className="flex-col w-fit h-fit items-center space-y-1">
-                <StatDisplay color="rgb(251 191 36)" stat={0} is_money={false}/>
+                <StatDisplay color="rgb(251 191 36)" stat={allWagers.length} is_money={false}/>
                 <Text style={{fontSize: 8}} className="text-white font-semibold">Wagers</Text>
               </View>
               <View className="flex-col justify-center items-center space-y-1">
-                < StatDisplay color="#00ff00" stat={0} is_money={false}/>
+                < StatDisplay color="#00ff00" stat={amountDonated} is_money={false}/>
                 <Text style={{fontSize: 8}} className="text-white font-semibold">Completed</Text>
               </View>
               <View className="flex-col justify-center items-center space-y-1">
@@ -220,31 +262,44 @@ const Profile = () => {
       <View className="flex-col w-full h-3/4 justify-center items-center">
           <View className="flex-row w-full h-fit py-2 px-1 justify-between items-center">
             <Text style={{fontSize: 12}} className="text-white font-semibold">Manage Friends</Text>
-            <Pressable onPress={async ()=>{setModalAddFriendVisible(true), await fetchUsernames("harleysiezar")}} className='flex-row px-4 py-1 border border-neutral-800 rounded-xl justify-center items-center'>
+            <Pressable onPress={async ()=>{setModalAddFriendVisible(true)}} className='flex-row px-4 py-1 border border-neutral-800 rounded-xl justify-center items-center'>
               <Text style={{fontSize: 8}} className="text-white font-semibold">Add</Text>
             </Pressable>
             {/* Confirmation modal */}
-             <Modal
+            <Modal
               animationType="slide"
               transparent={true}
               visible={modalAddFriendVisible}
-              onRequestClose={() => {setModalAddFriendVisible(false); setSelectedUser(null)}}
-            >
-              <View className="flex-1 justify-center items-center m-4">
-                <View className="flex p-5 rounded-xl border border-neutral-800 bg-neutral-600 justify-center items-center">
-                  {selecteUser && <Text className='text-neutral-400'>Remove @{selecteUser.username}?</Text>}
-                  <UserSearch />
-                  <View className="flex-row justify-center items-center space-x-4">
-                    <Pressable className="p-2" onPress={() => { setModalAddFriendVisible(false); }}>
-                      <Text className="text-white text-center">Cancel</Text>
-                    </Pressable>
-                    <Pressable className="p-2" onPress={() => { setModalAddFriendVisible(false); }}>
-                      <Text className="text-white text-center">Confirm</Text>
-                    </Pressable>
+              onRequestClose={() => setModalAddFriendVisible(false)}>
+              <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, .90)'}}>
+                <View style={{ 
+                    flex: 0,
+                    width: '90%',
+                    height: '50%',
+                    backgroundColor: '#0D0D0D',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: 15, // Optional: for rounded corners
+                    shadowColor: "#050505", // Optional: for shadow
+                    shadowOffset: {
+                        width: 2,
+                        height: 2
+                    },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 4,
+                }}>
+                  <View className="flex-col w-full h-full justify-center items-center space-y-12">
+                    <SearchBar />
+                    <View className="flex-row w-full pr-6 h-fit justify-end items-center">
+                      <Pressable onPress={() => setModalAddFriendVisible(false)} className='flex-row  justify-center items-center'>
+                        <Text style={{fontSize: 12}} className="text-neutral-300 font-semibold">Cancel</Text>
+                      </Pressable>
+                    </View>
                   </View>
                 </View>
+
               </View>
-            </Modal>
+          </Modal>
           </View>
           <FriendList />
       </View>

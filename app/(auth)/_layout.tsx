@@ -2,6 +2,7 @@ import { Tabs, useSegments } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable } from 'react-native';
 import { useAuth } from '@clerk/clerk-expo';
+import { StatusBar } from 'expo-status-bar';
 
 export const LogoutButton = () => {
   const { signOut } = useAuth();
@@ -23,6 +24,8 @@ const TabsPage = () => {
   const segmen = useSegments();
 
   return (
+    <>
+    <StatusBar style="light" />
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -66,6 +69,7 @@ const TabsPage = () => {
         redirect={!isSignedIn}
       />
     </Tabs>
+    </>
   );
 };
 

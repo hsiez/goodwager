@@ -18,8 +18,9 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
     const date = index[0];
     const data = index[1];
     const [workoutDay, setWorkoutDay] = useState([0, 0]);
-    const [borderColor, setBorderColor] = useState("");
-    const [numberBg, setNumberBg] = useState('bg-neutral-900');
+    const [borderColor, setBorderColor] = useState("border-neutral-800");
+    const [numberBg, setNumberBg] = useState('bg-neutral-800');
+    const [numberTextColour, setNumberTextColour] = useState('white');
     const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
 
 
@@ -30,10 +31,11 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
         setWorkoutDay([Math.floor(data.challengeDay / 10), data.challengeDay % 10]);
       }
       if ([7, 14, 21].includes(data.challengeDay)) {
-        setNumberBg("bg-neutral-600");
+        setNumberBg("bg-neutral-500");
+        setNumberTextColour("black");
       }
       if (today === date) {
-        setBorderColor("border-neutral-400");
+        setBorderColor("border-neutral-100");
       }
     }, [data.challengeDay]); 
 
@@ -53,19 +55,17 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
               disabled={!wagerActive}
             >
         <View key={data.challengeDay} className="flex h-10 w-10" >
-          <Shadow startColor={'#050505'} paintInside={true} distance={4} style={{borderRadius: 10, flexDirection: "row", width: '100%', height:"100%" }}>
-              <View style={{backgroundColor: "#0D0D0D"}} className={`flex border-0.5 ${borderColor} bg-slate-50 pt-0.5 rounded-lg w-full justify-between pb-1 items-center`}>
+              <View className={`flex border ${borderColor} pt-0.5 rounded-lg w-full justify-between pb-1 items-center bg-neutral-900`}>
                 <View style={{backgroundColor: statusColor, width: "60%", height:"10%"}} className="flex rounded-b items-center" />
-                <View className="flex-row h-fit w-fit">
+                <View className="flex-row mt-2 h-fit w-fit">
                   <View className={`h-fit w-3.5 rounded ${numberBg} px-1 py-1 mr-0.5`}>
-                    <Text style={{fontSize: 10, color: "white" }} className="text-white text-center">{workoutDay[0]}</Text>
+                    <Text style={{fontSize: 10, color: numberTextColour }} className="text-white text-center">{workoutDay[0]}</Text>
                   </View>
                   <View className={`h-fit w-3.5 rounded ${numberBg} px-1 py-1`}>
-                    <Text style={{fontSize: 10, color: "white"}} className="text-white text-center">{workoutDay[1]}</Text>
+                    <Text style={{fontSize: 10, color: numberTextColour}} className="text-white text-center">{workoutDay[1]}</Text>
                   </View>
                 </View>
               </View>
-          </Shadow>
         </View>
       </TouchableOpacity>
 
@@ -119,10 +119,14 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
     setModalVisible(true);
   };
   return (
-    <View className="flex-col h-full justify-between w-full items-center p-1">
+    <>
+    <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 10, flexDirection: "row", width: '100%', height:"100%" }}>
+    <View  style={{backgroundColor: "#090909"}} className="flex-col h-full w-full justify-between items-center p-3 border rounded-xl border-neutral-800">
       <Week key="1" week={weekOne} week_number={1} />
       <Week key="2" week={weekTwo} week_number={2} />
       <Week key="3" week={weekThree} week_number={3} />
+    </View>
+    </Shadow>
 
       <Modal
       animationType="slide"
@@ -140,7 +144,9 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
         </View>
       </Pressable>
     </Modal> 
-    </View>
+
+    </>
+    
 
   );
 };
