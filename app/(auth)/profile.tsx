@@ -88,19 +88,6 @@ const Profile = () => {
     );
   }
 
-  const fake_friends = [  
-    { id: '1', name: 'John Doe', pic: user.imageUrl, username: user.username },
-    { id: '2', name: 'Jane Smithds', pic: user.imageUrl, username: user.username },
-    { id: '3', name: 'John Doe', pic: user.imageUrl, username: user.username },
-    { id: '4', name: 'Jane Smithds', pic: user.imageUrl, username: user.username },
-    { id: '5', name: 'John Doe', pic: user.imageUrl, username: user.username },
-    { id: '6', name: 'Jane Smithds', pic: user.imageUrl, username: user.username },
-    { id: '7', name: 'John Doe', pic: user.imageUrl, username: user.username },
-    { id: '8', name: 'Jane Smithds', pic: user.imageUrl, username: user.username },
-    { id: '9', name: 'John Doe', pic: user.imageUrl, username: user.username },
-    { id: '10', name: 'Jane Smithds', pic: user.imageUrl, username: user.username },
-  ];
-
   function onRemoveFriend(id) {
     console.log('Removing friend with id:', id);
   }
@@ -161,7 +148,7 @@ const Profile = () => {
 
   const FriendList = () => {
     // Sample data for the list
-    const [friends, setFriends] = useState(fake_friends);
+    const [friends, setFriends] = useState([]);
     const [followers, setFollowers] = useState([]);
   
     // The delete function
@@ -246,11 +233,11 @@ const Profile = () => {
                 <Text style={{fontSize: 8}} className="text-white font-semibold">Wagers</Text>
               </View>
               <View className="flex-col justify-center items-center space-y-1">
-                < StatDisplay color="#00ff00" stat={amountDonated} is_money={false}/>
+                < StatDisplay color="#00ff00" stat={allWagers.filter(wager => wager.status === "completed").length} is_money={false}/>
                 <Text style={{fontSize: 8}} className="text-white font-semibold">Completed</Text>
               </View>
               <View className="flex-col justify-center items-center space-y-1">
-              < StatDisplay color="#FB7183" stat={0} is_money={true}/>
+              < StatDisplay color="#FB7183" stat={amountDonated} is_money={true}/>
                 <Text style={{fontSize: 8}} className="text-white font-semibold">Donated</Text>
               </View>
             </View>

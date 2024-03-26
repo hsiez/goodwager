@@ -75,9 +75,9 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
 
   const Week = ({ week, week_number }) => {
     return (
-      <View key={week_number} className="flex-row w-full h-auto justify-between items-center">
+      <View className="flex-row w-full h-auto justify-between items-center">
         {week.map((index) => (
-        < SingleDay week={week_number} index={index} />
+        < SingleDay key={index} week={week_number} index={index} />
         ))}
       </View>
     );
@@ -107,7 +107,7 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
           setWagerTrackerData(workoutDataFlat);
         }
     }
-  }, [last_date_completed, start_date]);
+  }, [ start_date]);
 
   const workoutEntries = Object.entries(wagerTrackerData);
   const weekOne = workoutEntries.slice(0, 7);

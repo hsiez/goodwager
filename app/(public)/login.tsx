@@ -37,11 +37,11 @@ const Login = () => {
       <View className='flex-col w-full justify-center items-center'>
         <View className='mb-2'>
           <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
-          <TextInput className='flex-row w-80 border border-neutral-800 rounded-xl' autoCapitalize="none" placeholder="simon@galaxies.dev" value={emailAddress} onChangeText={setEmailAddress} style={styles.inputField} />
+          <TextInput className='flex-row w-80 border border-neutral-800 rounded-xl text-neutral-300' autoCapitalize="none" placeholder="simon@galaxies.dev" value={emailAddress} onChangeText={setEmailAddress} style={styles.inputField} />
           </Shadow>
         </View>
         <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
-        <TextInput className='flex-row w-80 border border-neutral-800 rounded-xl' placeholder="password" value={password} onChangeText={setPassword} secureTextEntry style={styles.inputField} />
+        <TextInput className='flex-row w-80 border border-neutral-800 rounded-xl text-neutral-300' placeholder="password" value={password} onChangeText={setPassword} secureTextEntry  style={styles.inputField} />
         </Shadow>
       </View>
       <Button onPress={onSignInPress} title="Login" color={"rgb(212 212 212)"}></Button>

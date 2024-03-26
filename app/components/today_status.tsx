@@ -1,11 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Text, View, Pressable, Modal, ScrollView, Image } from 'react-native';
-import HealthKitContext from './HealthkitContext';
-import * as SecureStore from 'expo-secure-store';
 import { Shadow } from 'react-native-shadow-2';
 import { Ionicons } from '@expo/vector-icons';
-import supabaseClient from '../utils/supabase';
-import { useAuth } from '@clerk/clerk-expo';
+
 import { useIsFocused } from '@react-navigation/native';
 import Svg, { Defs, RadialGradient, Stop, Circle } from "react-native-svg";
 
@@ -234,7 +231,7 @@ const TodayStatus = ({ start_date, worked_out_today }: {start_date: string, work
                                         <View style={{height: '80%', width: '90%'}} className=" border border-neutral-800 rounded-2xl">
                                             <ScrollView className="h-full w-full px-3 py-1">
                                                 {notifications.map(notification => (
-                                                    <View className="flex-row w-full h-10 justify-center items-center space-x-5">
+                                                    <View key={notification.id} className="flex-row w-full h-10 justify-center items-center space-x-5">
                                                         <NotificationIcon type={notification.type} />
                                                         <View className='flex-row h-full space-x-2 items-center'>
                                                             <Text style={{fontSize: 14}} className="text-neutral-400 ">{notification.sender} sent you kudos:</Text>

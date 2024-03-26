@@ -42,7 +42,21 @@ const TabsPage = () => {
         redirect={!isSignedIn}
 
       />
-          
+
+      <Tabs.Screen
+        name="feed"
+        options={{
+          tabBarIcon: ({ color, size }) => <Ionicons name="restaurant-outline" size={size} color={color} />,
+          tabBarLabel: 'Feed',
+          headerShown: false,
+          headerStyle: {
+            backgroundColor: "#090909", // Correct property for background color
+            borderColor: "#090909",
+          },
+          headerTintColor: '#fff'
+        }}
+        redirect={!isSignedIn}
+      />
 
       <Tabs.Screen
         name="profile"
@@ -50,21 +64,6 @@ const TabsPage = () => {
           tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
           tabBarLabel: 'My Profile',
           headerRight: () => <LogoutButton />,
-        }}
-        redirect={!isSignedIn}
-      />
-
-      <Tabs.Screen
-        name="followers"
-        options={{
-          tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} />,
-          tabBarLabel: 'Friends',
-          headerShown: false,
-          headerStyle: {
-            backgroundColor: "#090909", // Correct property for background color
-            borderColor: "#090909",
-          },
-          headerTintColor: '#fff'
         }}
         redirect={!isSignedIn}
       />

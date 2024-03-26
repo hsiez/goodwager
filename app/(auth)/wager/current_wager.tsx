@@ -18,8 +18,7 @@ import HealthKitContext from '../../components/HealthkitContext';
 //import Svg { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';s
 
 
-const WagerInfo = ({latest_wager}: {latest_wager: any}) => {
-  const [hasActiveWager, setHasActiveWager] = useState(false);
+const WagerInfo = ({latest_wager, hasActiveWager}: {latest_wager: any, hasActiveWager: boolean}) => {
   const [amount, setAmount] = useState(0);
   const [statusTitle, setStatusTitle] = useState('NO ONGOING WAGER');
   const [statusTitleColor, setStatusTitleColor] = useState('text-neutral-500');
@@ -49,11 +48,9 @@ const WagerInfo = ({latest_wager}: {latest_wager: any}) => {
     }
   }
   useEffect(() => {
-    
     if (latest_wager.wager_id != null) {
       if (latest_wager.status === 'ongoing') {
         setStatusTitle('ONGOING WAGER');
-        setHasActiveWager(true);
         setStatusTitleColor('text-emerald-500');
       }
       if (latest_wager.status === 'completed') {
@@ -72,7 +69,7 @@ const WagerInfo = ({latest_wager}: {latest_wager: any}) => {
     if (latest_wager != null) {
       
     }
-  }, [latest_wager]);
+  }, [latest_wager, hasActiveWager]);
   
   return (
     <View className='flex w-full items-start'>
@@ -167,7 +164,7 @@ const Wager = () => {
       }
   }
   async function updateWagerWithWorkout(today) {
-      console.log('updating wager with workout');
+      console.log('updating wager with workout', wager);
       const supabase = supabaseClient(await getToken({ template: 'supabase' }));
       const { error } = await supabase
       .from('wagers')
@@ -200,7 +197,7 @@ const Wager = () => {
         const supabase = supabaseClient(supabaseAccessToken);
 
   
-        let { data, error } = await supabase
+        const { data, error } = await supabase
           .from('wagers')
           .select()
           .eq('user_id', user.id)
@@ -209,39 +206,23 @@ const Wager = () => {
           console.log('error fetching wager data from supabase', error);
           throw error;
         }
-        
         if (isSubscribed) {
           const today = new Date(new Date().setHours(0, 0, 0, 0));
           if (data.length > 0) {
-            const last_date_completed = new Date(data[0].last_date_completed);
-             // Check if last complete day is less then 2 days ago
-            
-            if ((today.getTime() - last_date_completed.getTime()) < 172800000 || data[0].last_date_completed === null) {
+             setHasActiveWager(true);
               setWager(data[0]);
-              setHasActiveWager(true);
-            }
-            else {
-              setHasActiveWager(false);
-              const { error } = await supabase
-                .from('wagers')
-                .update(
-                    { status: 'failed' },
-                )
-                .eq('wager_id', data[0].wager_id);
-              if (error) {
-                console.log('error updating wager status to \'failed \'', error);
-              }
-            }
+
           }
 
           if (hasActiveWager) {
-            if (new Date(wager.last_date_completed) === today) {
+            if (new Date(wager.last_date_completed).toISOString() === today.toISOString()) {
               console.log('Workout already logged for today');
               setWorkedoutToday(true);
             }
             else {
               handleHealthData(today.toISOString());
               if (workedoutToday) {
+                console.log("inside the block")
                 updateWagerWithWorkout(today.toISOString());
                 const tracker = JSON.parse(await SecureStore.getItemAsync("wager_tracker"));
                 tracker[today.toISOString()].workedOut = true;
@@ -311,7 +292,7 @@ const Wager = () => {
     <View style={{backgroundColor: "#090909"}} className="flex-col h-full items-center ">
       <View className='flex-col w-full px-5 h-full py-10 justify-between items-center '>
         {/* If there is an active wager, show the wager info */}
-        <WagerInfo latest_wager={wager} /> 
+        <WagerInfo latest_wager={wager} hasActiveWager={hasActiveWager}/> 
  
         {/* if there is an active wager, show Todays stats: status, pokes, use rest day*/}
         <View className='flex-col w-full h-1/4 justify-center items-center'>

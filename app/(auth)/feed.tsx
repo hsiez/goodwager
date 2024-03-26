@@ -6,6 +6,7 @@ import { Shadow } from 'react-native-shadow-2';
 import { Ionicons } from '@expo/vector-icons';
 import fetchUsername from '../utils/get_usersnames';
 import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
+import { useIsFocused } from '@react-navigation/native';
 
 
 // Define the FollowerCard component
@@ -118,12 +119,12 @@ const FollowerCard = ({follower}: {follower}) => {
         return null;
     }
     return (
-        <View className='flex h-20 w-full mb-4'>
+        <View className='flex h-20 w-full mb-2'>
             <Pressable onPress={handlePress} disabled={buttonPressed} >
             <Shadow startColor={'#050505'} paintInside={true} distance={3} style={{borderRadius: 12, flexDirection: "row", width: '100%', height:"100%" }}>
                 <View style={{backgroundColor: "#0D0D0D"}} className="flex-col h-full  w-full justify-between items-center border-neutral-800 rounded-xl border px-2">
                     <View className='h-full w-full flex-row justify-between items-center'>
-                        <View className='h-full justify-center items-center'>
+                        <View className='flex h-11 w-11 rounded-full p-0.5 border border-neutral-400 justify-center items-center'>
                             <Image source={{uri: followerData.image_url}} style={{width: 40, height: 40, borderRadius: 50}} />
                         </View>
                         <View className='flex-col justify-center items-start w-1/3'>
@@ -164,6 +165,7 @@ const FollowerCard = ({follower}: {follower}) => {
 };
 
 const FollowersList = () => {
+    const isFocused = useIsFocused();
     const [followers, setFollowers] = useState([]);
     const { getToken, userId } = useAuth();
     const [loading, setLoading] = useState(true);
@@ -219,22 +221,31 @@ const FollowersList = () => {
         return () => {
             isSubscribed = false; // Clean up subscription on unmount
         };
-        }, [userId]);
+        }, [userId, isFocused]);
 
     return (
-        <View style={{backgroundColor: "#090909"}} className="flex-col h-full items-center pt-10">
-            <View className=" flex-row mt-10 mb-3 px-4 w-full justify-between h-auto items-center">
-                <Text style={{fontSize: 12}} className="text-white font-semibold">Motivate Your Friends</Text>
+        <View style={{backgroundColor: "#090909"}} className="flex-col h-full justify-center items-center pt-10">
+            <View className=" flex-col px-3 w-full h-full justify-center items-center space-y-2">
+                <View className='flex-row w-full ml-2 justify-start'>
+                    <Text style={{fontSize: 12}} className="text-white font-semibold">Motivate Your Friends</Text>
+                </View>
                 {/* button to open invite module */}
-                <Pressable className='flex-row px-4 py-1 border border-neutral-800 rounded-xl justify-center items-center'>
-                    <Text style={{fontSize: 10}} className="text-white font-semibold">Invite</Text>
-                </Pressable>
+                <View style={{height:"80%"}} className='flex-row w-full'>
+                    <Shadow startColor={'#050505'} distance={2}>
+                    <ScrollView 
+                        showsVerticalScrollIndicator={false} 
+                        contentContainerStyle={{alignItems: 'center', paddingBottom:5}} 
+                        className=' pb-0.5 px-1 py-1 w-full border rounded-xl border-neutral-800'
+                        style={{minWidth: '100%', height:"100%"}} // Set a minimum width to maintain full size
+                    >
+                        
+                        {followers.map((follower) => (
+                        <FollowerCard key={follower.followee_un} follower={follower} />
+                        ))}
+                    </ScrollView>
+                    </Shadow>
+                </View>
             </View>
-            <ScrollView contentContainerStyle={{height: "80%", width: "95%", paddingHorizontal: 6}}>
-                {followers.map((follower) => (
-                <FollowerCard key={follower.followee_un} follower={follower} />
-                ))}
-            </ScrollView>
         </View>
     );
 };

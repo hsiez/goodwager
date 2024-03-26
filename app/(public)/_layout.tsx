@@ -1,8 +1,11 @@
 import React from 'react';
 import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 
 const PublicLayout = () => {
   return (
+    <>
+    <StatusBar style="light" />
     <Stack
       screenOptions={{
         
@@ -30,6 +33,7 @@ const PublicLayout = () => {
           headerTitle: 'Reset Password',
         }}></Stack.Screen>
     </Stack>
+    </>
   );
 };
 
