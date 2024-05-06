@@ -1,10 +1,9 @@
-import { View, Text, Pressable, Modal, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, Pressable, Modal, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import React, {useState, useContext, useEffect} from 'react';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import TodayStatus from '../../components/today_status';
 import WagerCalendar from '../../components/wager_calendar';
-import * as Localization from 'expo-localization';
 import { Link } from "expo-router";
 import supabaseClient from '../../utils/supabase';
 import * as TaskManager from 'expo-task-manager';
@@ -15,15 +14,69 @@ import { Shadow } from 'react-native-shadow-2';
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
 import HealthKitContext from '../../components/HealthkitContext';
+import LinearGradient from 'react-native-linear-gradient';
+import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 //import Svg { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';s
+
+
+const ShimmerButton = ({ title, onPress }) => {
+  const [isShimmering, setIsShimmering] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsShimmering((prevState) => !prevState);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      className='flex-row  px-2 py-1 justify-start items-center rounded-3xl bg-neutral-500'
+    >
+      <Text style={{fontSize: 8}} className="text-neutral-950 mr-2">{title}</Text>
+      <FontAwesome6 name="edit" size={8} color={'#0a0a0a'} />
+      <ShimmerPlaceholder
+        visible={false}
+        style={
+          {
+            width: "auto",
+            height: "auto",
+            borderRadius: 12,
+          }
+        
+        }
+        shimmerStyle={{
+          backgroundColor: 'rgb(0, 0, 0, 0)',
+          position: 'absolute',
+          opacity:0.3,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          borderRadius: 24,
+          autoRun: true
+        }}
+        duration={3000}
+        shimmerColors={['#737373', '#ffffff', '#737373']}
+        LinearGradient={LinearGradient}
+        shimmerWidthPercent={0.2}
+      />
+    </TouchableOpacity>
+  );
+};
+
+
 
 
 const WagerInfo = ({latest_wager, hasActiveWager}: {latest_wager: any, hasActiveWager: boolean}) => {
   const [amount, setAmount] = useState(0);
-  const [statusTitle, setStatusTitle] = useState('NO ONGOING WAGER');
+  const [statusTitle, setStatusTitle] = useState('No');
   const [statusTitleColor, setStatusTitleColor] = useState('text-neutral-500');
-  const [bannerLeft, setBannerLeft] = useState('Don\'t Be Shy');
-  const [bannerRight, setBannerRight] = useState('Ante Up');
+  const [workoutFreq, setWorkoutFreq] = useState(0);
+  const [start, setStart] = useState('TBT');
+  const [end, setEnd] = useState('TBT');
 
 
   const WagerButton = () => {
@@ -31,7 +84,7 @@ const WagerInfo = ({latest_wager, hasActiveWager}: {latest_wager: any, hasActive
       return (
         <Link href="/wager/create" asChild>
           <Pressable className='flex-row space-x-1 justify-center items-end'>
-            <Text style={{fontSize: 8}} className="text-neutral-100 ml-1 ">Create New Wager</Text>
+            <Text style={{fontSize: 8}} className="text-neutral-100 ">Create New Wager</Text>
             <Ionicons name="create-outline" size={12} color="rgb(212 212 212)" />
           </Pressable>
         </Link>
@@ -50,8 +103,8 @@ const WagerInfo = ({latest_wager, hasActiveWager}: {latest_wager: any, hasActive
   useEffect(() => {
     if (latest_wager.wager_id != null) {
       if (latest_wager.status === 'ongoing') {
-        setStatusTitle('ONGOING WAGER');
-        setStatusTitleColor('text-emerald-500');
+        setStatusTitle('Active');
+        setStatusTitleColor('text-green-500');
       }
       if (latest_wager.status === 'completed') {
         setStatusTitle('COMPLETED WAGER');
@@ -61,10 +114,10 @@ const WagerInfo = ({latest_wager, hasActiveWager}: {latest_wager: any, hasActive
         setStatusTitle('FAILED WAGER');
         setStatusTitleColor('text-rose-400');
       }
-      setBannerLeft(charity_map[latest_wager.charity_id].name);
-      var finish = new Date(latest_wager.end_date);
-      setBannerRight(`${finish.toLocaleString('default', { month: 'short' })} ${finish.getDate()}, ${finish.getFullYear()}`);
+      setStart(new Date(latest_wager.start_date).toLocaleString('default', { month: 'short', day: 'numeric', year: 'numeric'}));
+      setEnd(new Date(latest_wager.end_date).toLocaleString('default', { month: 'short', day: 'numeric', year: 'numeric'}));
       setAmount(latest_wager.amount);
+      setWorkoutFreq(latest_wager.workout_freq);
     }
     if (latest_wager != null) {
       
@@ -73,31 +126,55 @@ const WagerInfo = ({latest_wager, hasActiveWager}: {latest_wager: any, hasActive
   
   return (
     <View className='flex w-full items-start'>
-      <View className='flex-col w-full justify-between mb-3 '>
+      <View className='flex-col w-full justify-between mb-2 '>
         <View className='flex-row justify-start items-center space-x-1'>
           <Text style={{fontSize: 12}} className={`${statusTitleColor} font-semibold`}>{statusTitle}</Text>
+          <Text style={{fontSize: 12}} className={`text-neutral-200 font-semibold`}>Wager</Text>
         </View>
-        
-        
       </View>
-      <View className="flex w-full justify-center items-center  mb-1">
-        <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
-          <View style={{backgroundColor: "#0D0D0D"}} className='flex-col border-neutral-800 rounded-xl border justify-center items-center'>
-            <View className='flex-row w-full px-2 py-1 mb-2 justify-between items-center border-neutral-800 rounded-sm border-b'>
-              <Text style={{fontSize: 8}} className="text-neutral-200">{bannerLeft}</Text>
-              <View className="flex-row space-x-1 h-3 w-fit justify-center items-center">
-                {latest_wager.wager_id != null && <FontAwesome6 name="flag-checkered" size={8} color={'rgb(115 115 115)'} />}
-                <View className="flex-col h-full justify-end items-end">
-                  <Text style={{fontSize: 8}} className="text-neutral-300">{bannerRight}</Text>
-                </View>
+      <View style={{height: 103}} className="flex w-full justify-center items-center mb-1">
+        <Shadow startColor={'#050505'} distance={2} style={{borderRadius: 12}}>
+          <View className='flex-col min-w-full px-2 rounded-2xl justify-center items-center border border-neutral-600 space-y-2 pt-2'>
+            <View className="flex-row pl-0.5 w-full justify-start items-center mt-1 space-x-2 ">
+              <View className='rounded'>
+                <Text className="text-2xl text-neutral-200">${amount}</Text>
               </View>
-            </View>
-            <View className="flex w-fit pt-2 justify-center items-center">
-              <Text className="text-4xl text-white">${amount}</Text>
+              <Ionicons name="arrow-forward-outline" size={20} color="#404040" />
+              {hasActiveWager ?
+              <View className='p-2'>
+                <Text className="text-2xl text-neutral-200">{charity_map[latest_wager.charity_id].name}</Text>
+              </View>
+              :
+              <View className='px-2 border-dashed border border-neutral-800 rounded-xl'>
+                <Text className="text-lg text-neutral-800">your fav charity</Text>
+              </View>
+              }
             </View>
             <View className="flex-row w-full space-x-2 mb-2 justify-center items-center">
+              {/*}
               <View className='flex-row p-0.5'>
                 <WagerButton />
+              </View>
+              */}
+              <View className='flex-row w-full justify-between items-center' >
+                <View className='flex-row px-2 py-1 space-x-2 justify-center items-start rounded-3xl bg-neutral-900'>
+                  <FontAwesome6 name="flag" size={8} color={'#00ff00'} />
+                  <Text style={{fontSize: 8}} className="text-neutral-500 ml-1 ">{start}</Text>
+                </View>
+                <View className='flex-row px-2 py-1 space-x-2 justify-center items-start  bg-neutral-900 rounded-3xl'>
+                  <FontAwesome6 name="flag-checkered" size={8} color={'#e5e5e5'} />
+                  <Text style={{fontSize: 8}} className="text-neutral-500 ml-1 ">{end}</Text>
+                </View>
+                <View className='flex-row px-2 py-1 justify-center items-center bg-neutral-900 rounded-3xl'>
+                  <Text style={{fontSize: 8}} className="text-neutral-500 ml-1 ">{workoutFreq} workouts weekly</Text>
+                </View>
+                {hasActiveWager ?
+                <View className='flex-row px-3 py-1 justify-center items-center bg-neutral-400 rounded-3xl'>
+                  <FontAwesome6 name="edit" size={11} color={'#404040'} />
+                </View>
+                :
+                <ShimmerButton title={"Create new wager"} onPress={() => {}}/>
+                }
               </View>
             </View>
           </View>
@@ -137,8 +214,7 @@ const Wager = () => {
   const { getToken } = useAuth();
   const { user } = useUser();
   const { healthKitAvailable, AppleHealthKit } = useContext(HealthKitContext);
-  const tzone = Localization.getCalendars()[0].timeZone;
-  const [workedoutToday, setWorkedoutToday] = useState(false);
+  const [possible_workout, set_possible_workout] = useState(null);
 
   function handleHealthData(date: string) {
       if (healthKitAvailable) {
@@ -147,7 +223,7 @@ const Wager = () => {
           AppleHealthKit.getSamples(
               {
                   startDate: date,
-                  endDate: end_date,
+                  endDate: end_date.toISOString(),
                   type: 'Workout', 
               },
               (err, results) => {
@@ -157,24 +233,33 @@ const Wager = () => {
                   }
                   if (results.length > 0) {
                       console.log('Workout found', results);
-                      setWorkedoutToday(true);
+                      set_possible_workout(results[0]);
                   }
               }
           );
       }
   }
+
+  const worked_out_today = async() => {
+    const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString(); 
+    const last_day = await SecureStore.getItemAsync("last_day");
+    if (last_day === today) {
+      return true;
+    }
+  }
   async function updateWagerWithWorkout(today) {
-      console.log('updating wager with workout', wager);
+      console.log('updating workout table with new workout', wager);
       const supabase = supabaseClient(await getToken({ template: 'supabase' }));
       const { error } = await supabase
-      .from('wagers')
-      .update({ last_date_completed: today, streak: wager.streak + 1 })
-      .eq('wager_id', wager.wager_id);
+      .from('workouts')
+      .insert({ wager_id: wager.wager_id, date: today, calories: possible_workout.calories, type: possible_workout.activityName})
       if (error) {
-          console.log('error updating last_date_completed', error);
+          console.log('error storing new workout', error);
           throw error;
       }
-      setWager({...wager, last_date_completed: today, streak: wager.streak + 1});
+      wager.last_date_completed = today;
+      const challengeDay = Math.floor((new Date(today).getTime() - new Date(wager.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      
   }
 
   useEffect(() => {
@@ -184,7 +269,6 @@ const Wager = () => {
     const fetchWager = async () => {
       try {
         console.log('fetching wager');
-        console.log(await getToken());
         let supabaseAccessToken: string | null = null;
         try {
           supabaseAccessToken = await getToken({ template: 'supabase' });
@@ -207,7 +291,7 @@ const Wager = () => {
           throw error;
         }
         if (isSubscribed) {
-          const today = new Date(new Date().setHours(0, 0, 0, 0));
+          const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
           if (data.length > 0) {
              setHasActiveWager(true);
               setWager(data[0]);
@@ -215,17 +299,14 @@ const Wager = () => {
           }
 
           if (hasActiveWager) {
-            if (new Date(wager.last_date_completed).toISOString() === today.toISOString()) {
-              console.log('Workout already logged for today');
-              setWorkedoutToday(true);
-            }
-            else {
-              handleHealthData(today.toISOString());
-              if (workedoutToday) {
-                console.log("inside the block")
-                updateWagerWithWorkout(today.toISOString());
+            console.log("dates", wager.last_date_completed, today)
+            if (wager.last_date_completed != today) {
+              console.log('Looking for workout data for today');
+              handleHealthData(today);
+              if (possible_workout != null) {
+                updateWagerWithWorkout(today);
                 const tracker = JSON.parse(await SecureStore.getItemAsync("wager_tracker"));
-                tracker[today.toISOString()].workedOut = true;
+                tracker[today].workedOut = true;
                 await SecureStore.setItemAsync("wager_tracker", JSON.stringify(tracker));
               }
             }
@@ -297,16 +378,13 @@ const Wager = () => {
         {/* if there is an active wager, show Todays stats: status, pokes, use rest day*/}
         <View className='flex-col w-full h-1/4 justify-center items-center'>
           <View className='flex w-full items-start mb-4'>
-            <Text  style={{fontSize: 12}} className="text-white font-semibold">TODAY</Text>
+            <Text  style={{fontSize: 12}} className="text-white font-semibold">Today</Text>
           </View>
-          <TodayStatus start_date={wager.start_date}  worked_out_today={workedoutToday}/>
+          <TodayStatus start_date={wager.start_date}  worked_out_today={possible_workout != null}/>
         </View>
 
         {/* section for overall wager progress. 28 days, 4 check point, 7 days for each check point */}
         <View className='flex-col w-full h-1/4 justify-center items-center'>
-          <View className='flex w-full items-start mb-4'>
-            <Text style={{fontSize: 12}} className="text-white font-semibold">TRACKER</Text>
-          </View>
           <WagerCalendar last_date_completed={wager.last_date_completed} start_date={wager.start_date} />
         </View>
       </View>

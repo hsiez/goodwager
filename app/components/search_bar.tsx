@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, TextInput, Pressable, Image, FlatList, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Make sure you have expo/vector-icons installed
-import fetchUsername from '../utils/get_usersnames';
+import { fetchUserFromUsername } from '../utils/clerk_apis';
 import { useAuth } from '@clerk/clerk-expo';
 import supabaseClient from '../utils/supabase';
 
@@ -41,7 +41,7 @@ const SearchBar = () => {
 
   const handleSubmitEditing = async () => {
     const token = await getToken({ template: 'supabase' });
-    const results = await fetchUsername(searchQuery, token);
+    const results = await fetchUserFromUsername(searchQuery, token);
     setSearchResults(results);
     const supabase = supabaseClient(token);
     const { data: followData } = await supabase

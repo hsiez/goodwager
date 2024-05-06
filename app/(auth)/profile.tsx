@@ -9,7 +9,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import UserSearch from '../components/user_search';
 import SearchBar from '../components/search_bar';
 import supabaseClient from '../utils/supabase';
-import fetchUsername from '../utils/get_usersnames';
+import { fetchUserFromUsername } from '../utils/clerk_apis';
 import Wager from './wager/current_wager';
 import { useIsFocused } from '@react-navigation/native';
 
@@ -65,7 +65,7 @@ const Profile = () => {
   const StatDisplay = ({ color, stat, is_money }) => {
     return (
       <View className='flex-col h-fit w-fit space-y-1'>
-        <Shadow startColor={'#050505'} distance={2} >
+        <Shadow startColor={'#050505'} distance={5} style={{borderRadius:12}}>
           <View style={{borderColor: color}} className='flex justify-center items-center h-14 w-14 border  rounded-xl'>
             <Svg height="100%" width="100%" >
                 <Defs>
@@ -96,7 +96,7 @@ const Profile = () => {
     const [follower_data, setFollowerData] = useState(null);
     useEffect(() => {
       async function fetchData() {
-        const data = await fetchUsername(friend.followee_un, await getToken({ template: 'supabase' }));
+        const data = await fetchUserFromUsername(friend.followee_un, await getToken({ template: 'supabase' }));
         setFollowerData(data[0]);
       }
       fetchData();
@@ -106,43 +106,43 @@ const Profile = () => {
       return null;
     }
     return (
-      <View className="flex-row w-full h-20 justify-between items-center mt-1 px-2 border rounded-xl border-neutral-800" style={{ backgroundColor: '#0D0D0D' }}>
-          <View className='flex h-11 w-11 rounded-full p-0.5 border border-neutral-400 justify-center items-center'>
-            <Image source={{uri: follower_data.image_url}} style={{width: "100%", height: "100%", borderRadius: 50}} />
-          </View>
-          <View className="flex-col space-y-1 items-center">
-            <Text style={{color: "#fff"}} className="text-lg">{follower_data.first_name} {follower_data.last_name}</Text>
-            <Text style={{color: "#fff"}} className="text-xs">@{follower_data.username}</Text>
-          </View>
-          <TouchableOpacity
-            className='flex-row justify-center items-center h-fit w-fit px-1 py-1 border border-neutral-800 rounded-lg'
-            onPress={() => {setModalUnfriendVisible(true); setSelectedUser(follower_data)}}
-          >
-             <Ionicons name="close-outline" size={18} color="rgb(115 115 115)" />
-          </TouchableOpacity>
-
-          {/* Confirmation modal */}
-          <Modal
-              animationType="slide"
-              transparent={true}
-              visible={modalUnfriendVisible}
-              onRequestClose={() => {setModalUnfriendVisible(false); setSelectedUser(null)}}
+        <View className="flex-row w-full h-20 justify-between items-center px-4 border-b rounded-3xl border-neutral-800">
+              <View className='flex h-11 w-11 rounded-full p-0.5 border border-neutral-400 justify-center items-center'>
+                <Image source={{uri: follower_data.image_url}} style={{width: "100%", height: "100%", borderRadius: 50}} />
+              </View>
+              <View className="flex-col space-y-1 items-center">
+                <Text style={{color: "#fff"}} className="text-lg">{follower_data.first_name} {follower_data.last_name}</Text>
+                <Text style={{fontSize:12}} className="text-neutral-500">@{follower_data.username}</Text>
+              </View>
+            <TouchableOpacity
+              className='flex-row justify-center items-center h-fit w-fit px-1 py-1 border border-neutral-800 rounded-xl'
+              onPress={() => {setModalUnfriendVisible(true); setSelectedUser(follower_data)}}
             >
-              <View className="flex-1 justify-center items-center m-4">
-                <View className="flex p-5 rounded-xl border border-neutral-800 bg-neutral-600 justify-center items-center">
-                  {selecteUser && <Text className='text-neutral-400'>Remove @{selecteUser.username}?</Text>}
-                  <View className="flex-row justify-center items-center space-x-4">
-                    <Pressable className="p-2" onPress={() => { setSelectedUser(null); setModalUnfriendVisible(false); }}>
-                      <Text className="text-white text-center">Cancel</Text>
-                    </Pressable>
-                    <Pressable className="p-2" onPress={() => { onDelete(friend.id); setModalUnfriendVisible(false); }}>
-                      <Text className="text-white text-center">Confirm</Text>
-                    </Pressable>
+              <Ionicons name="close-outline" size={18} color="rgb(115 115 115)" />
+            </TouchableOpacity>
+
+            {/* Confirmation modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalUnfriendVisible}
+                onRequestClose={() => {setModalUnfriendVisible(false); setSelectedUser(null)}}
+              >
+                <View className="flex-1 justify-center items-center m-4">
+                  <View className="flex p-5 rounded-xl border border-neutral-800 bg-neutral-600 justify-center items-center">
+                    {selecteUser && <Text className='text-neutral-400'>Remove @{selecteUser.username}?</Text>}
+                    <View className="flex-row justify-center items-center space-x-4">
+                      <Pressable className="p-2" onPress={() => { setSelectedUser(null); setModalUnfriendVisible(false); }}>
+                        <Text className="text-white text-center">Cancel</Text>
+                      </Pressable>
+                      <Pressable className="p-2" onPress={() => { onDelete(friend.id); setModalUnfriendVisible(false); }}>
+                        <Text className="text-white text-center">Confirm</Text>
+                      </Pressable>
+                    </View>
                   </View>
                 </View>
-              </View>
             </Modal>
-      </View>
+        </View>
     );
   };
 
@@ -175,12 +175,12 @@ const Profile = () => {
     , [userId]);
     return (
       <View className='flex-row w-full h-3/5 justify-center items-center'>
-        <Shadow startColor={'#050505'} distance={2}>
+        <Shadow startColor={'#050505'} distance={2} style={{borderRadius:12}}>
           <ScrollView 
             showsVerticalScrollIndicator={false} 
             contentContainerStyle={{alignItems: 'center', paddingBottom:5}} 
             className='flex-1 pb-0.5 px-1 w-full h-full border rounded-xl border-neutral-800'
-            style={{minWidth: '100%'}} // Set a minimum width to maintain full size
+            style={{minWidth: '100%', backgroundColor: '#0D0D0D'}} // Set a minimum width to maintain full size
           >
             {followers.map((follower) => (
                   <FriendItem key={follower.followee} friend={follower} onDelete={onDelete} />

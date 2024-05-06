@@ -1,39 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, ScrollView, Pressable } from 'react-native';
-import { useAuth } from '@clerk/clerk-expo';
+import { View, Text, Image, ImageBackground, ScrollView, Pressable } from 'react-native';
+import { useAuth, useUser } from '@clerk/clerk-expo';
 import supabaseClient from '../utils/supabase';
 import { Shadow } from 'react-native-shadow-2';
-import { Ionicons } from '@expo/vector-icons';
-import fetchUsername from '../utils/get_usersnames';
+import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
+import { fetchUserFromUsername, fetchFollowerWagerData } from '../utils/clerk_apis';
 import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
 import { useIsFocused } from '@react-navigation/native';
+
+
+
+const CARD_IMAGES = {
+    green: require("../assets/images/feed_green_2.png"),
+    red: require("../assets/images/feed_red.png"),
+  };
 
 
 // Define the FollowerCard component
 const FollowerCard = ({follower}: {follower}) => {
     const { userId, getToken } = useAuth();
+    const {user} = useUser();
     const [followerData, setFollowerData] = useState(null);
+    const [followerWagerData, setFollowerWagerData] = useState({amount: 0, workout_freq: 0, end_date: new Date().toISOString(), streak: 0});
     const [buttonPressed, setButtonPressed] = useState(false);
     const [notificationId, setNotificationId] = useState(null);
+    const [worked_out_today, setWorkedOutToday] = useState(follower.worked_out_today);
 
     // Determine initial button text, status color, and status text based on follower's workout_today property
-    const initialButtonText = follower.workout_today ? "LFG!" : "Get Up!";
-    const initialStatusColor = follower.workout_today ? "#71BC78" : "rgb(244 63 94)";
-    const initialStatusText = follower.workout_today ? "Exercised Today" : "Exercise Pending";
+    const initialButtonText = worked_out_today ? "LFG!" : "Get Up!";
+    const initialStatusColor = worked_out_today ? "#71BC78" : "rgb(244 63 94)";
+    const initialStatusText = worked_out_today ? "Exercised Today" : "Exercise Pending";
 
     const [buttonText, setButtonText] = useState(initialButtonText);
     const [statusColor, setStatusColor] = useState(initialStatusColor);
     const [statusText, setStatusText] = useState(initialStatusText);
+    const [card_text, setCardText] = useState("Today's Workout is Pending");
     const notButtonColorDefault = "#fff";
 
     const getColorAfterPress = () => {
         switch (statusText) {
             case "Exercised Today":
                 return "#00ff00";
+            case "Exercise Pending":
+                return "rgb(251 113 133)"
+
             default:
                 return "rgb(251 113 133)";
         }
     };
+    
 
     async function storeStateNotification() {
         const supabase = supabaseClient(await getToken({ template: 'supabase' }));
@@ -41,7 +56,7 @@ const FollowerCard = ({follower}: {follower}) => {
         const { error } = await supabase
             .from('notifications')
             .insert(
-                { sender: userId, receiver: follower.name, receiver_status: statusText, created_at: today }
+                { sender: userId, sender_un: user.username, receiver: follower.followee, receiver_status: statusText, created_at: today }
             );
         if (error) {
             console.log('error storing notification: supabase', error);
@@ -81,85 +96,134 @@ const FollowerCard = ({follower}: {follower}) => {
                 .from('notifications')
                 .select()
                 .eq('sender', userId)
-                .eq('receiver', follower.name);
+                .eq('receiver', follower.followee);
             if (error) {
                 console.log('error fetching notification data from supabase', error);
                 throw error;
             }
+            
             if (data.length > 0) {
-                if (data[0].receiver_status === 'Exercised Today') {
+                setButtonPressed(data.length > 0);
+                switch (data[0].receiver_status) {
+                    case 'Exercised Today':
                     setButtonText("Sent!");
                     setStatusColor("#71BC78");
                     setStatusText("Exercised Today");
-                }
-
-                if (data[0].receiver_status === 'Excercise Pending') {
+                    setNotificationId(data[0].id);
+                    break;
+                    case 'Excercise Pending':
                     setButtonText("Sent!");
                     setStatusColor("rgb(244 63 94)");
                     setStatusText("Exercise Pending");
+                    setNotificationId(data[0].id);
+                    break;
                 }
-                setButtonPressed(true);
-                setNotificationId(data[0].id);
             }
 
         }
         async function fetchFollowerData() {
-            const data = await fetchUsername(follower.followee_un, await getToken({ template: 'supabase' }));
+            const data = await fetchUserFromUsername(follower.followee_un, await getToken({ template: 'supabase' }));
             setFollowerData(data[0]);
+            const wagerData = await fetchFollowerWagerData(follower.followee, await getToken({ template: 'supabase' }));
+            if (wagerData.amount > 0) {
+                const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+                setFollowerWagerData(wagerData);
+                setWorkedOutToday(wagerData.last_date_completed === today);
+                setCardText(wagerData.last_date_completed === today ? "Today's Workout is Complete!" : "Today's Workout is Pending");
+            }
             
         }
         fetchNotData();
         fetchFollowerData();
-        setButtonText(follower.workout_today ? "LFG!" : "Get Up!");
-        setStatusColor(follower.workout_today ? "#71BC78" : "rgb(244 63 94)");
-        setStatusText(follower.workout_today ? "Exercised Today" : "Exercise Pending");
+        if (!notificationId) {
+            setButtonText(worked_out_today ? "LFG!" : "Get Up!");
+            setStatusColor(worked_out_today ? "#71BC78" : "rgb(244 63 94)");
+            setStatusText(worked_out_today ? "Exercised Today" : "Exercise Pending");
+        }
     }, [follower]);
 
     if (!followerData) {
         return null;
     }
+
+    if (followerWagerData.amount === 0) {
+        return null;
+    }
+
+    const cardKey = worked_out_today ? "green" : "red";
+    const cardImage = CARD_IMAGES[cardKey];
     return (
-        <View className='flex h-20 w-full mb-2'>
-            <Pressable onPress={handlePress} disabled={buttonPressed} >
-            <Shadow startColor={'#050505'} paintInside={true} distance={3} style={{borderRadius: 12, flexDirection: "row", width: '100%', height:"100%" }}>
-                <View style={{backgroundColor: "#0D0D0D"}} className="flex-col h-full  w-full justify-between items-center border-neutral-800 rounded-xl border px-2">
-                    <View className='h-full w-full flex-row justify-between items-center'>
-                        <View className='flex h-11 w-11 rounded-full p-0.5 border border-neutral-400 justify-center items-center'>
-                            <Image source={{uri: followerData.image_url}} style={{width: 40, height: 40, borderRadius: 50}} />
-                        </View>
-                        <View className='flex-col justify-center items-start w-1/3'>
-                            <Text className="text-lg text-neutral-200">{followerData.first_name} {followerData.last_name}</Text>
-                            <Text className="text-xs text-neutral-600">{statusText}</Text>
-                        </View>
-                        <View className='flex-col h-fit w-fit space-y-1'>
-                        <Shadow startColor={'#050505'} distance={2} style={{borderRadius: 8}}>
-                            <View style={{borderColor: buttonPressed ? getColorAfterPress() : notButtonColorDefault}} className='flex justify-center items-center h-10 w-10 border  rounded-xl'>
-                                
-                                    <Svg height="100%" width="100%" >
-                                        <Defs>
-                                            <RadialGradient id="grad" cx="50%" cy="50%" r="100%" fx="50%" fy="50%">
-                                                <Stop offset="40%" stopColor="#0D0D0D" stopOpacity="1" />
-                                                <Stop offset="100%" stopColor={buttonPressed ? getColorAfterPress() : notButtonColorDefault} stopOpacity="1" />
-                                            </RadialGradient>
-                                        
-                                        </Defs>
-                                        <Rect x="0" y="0" width="100%" height="100%" fill="url(#grad)" rx={11} ry={11}/>
-                                        <View className="flex h-full w-full justify-center items-center ">
-                                            <Icon status={statusText} />
+        <View className='flex-1 h-36 w-full mb-4'>
+            <Shadow startColor={'#050505'} distance={6} style={{borderRadius: 12, flexDirection: "row", width: '100%', height:"100%" }}>
+                <View className="flex-1 h-full w-full">
+                    <ImageBackground source={cardImage} resizeMode='stretch' style={{backgroundColor: "#0D0D0D", borderRadius: 10, position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', flex: 1}}>
+                        <View className='flex-row w-full justify-between items-start'>
+                            <View className='flex-row w-fit justify-start px-2 py-3 mb-2'>
+                                <View className='flex-row w-fit h-fit space-x-2 items-center'>
+                                    <View className='flex h-11 w-11 rounded-full p-0.5 border border-neutral-600 justify-center items-center'>
+                                        <Image source={{uri: followerData.image_url}} style={{width: 40, height: 40, borderRadius: 50}} />
+                                    </View>
+                                    <View className='flex-col justify-center items-start w-fit'>
+                                        <Text className="text-lg text-neutral-300">{followerData.first_name} {followerData.last_name}</Text>
+                                        <View className='flex-row w-fit justify-start space-x-1'>
+                                            <View className='flex-row w-fit justify-start items-center'>
+                                                <Text style={{fontSize: 8}} className="text-xs text-neutral-300">${followerWagerData.amount}</Text>
+                                            </View>
+                                            <Text style={{fontSize:12, fontWeight: "bold"}} className='text-neutral-600'>|</Text>
+                                            <View className='flex-row w-fit items-center'>
+                                                <Text style={{fontSize: 8}} className="text-xs text-neutral-300">{followerWagerData.workout_freq} workouts</Text>
+                                            </View>
+                                            <Text style={{fontSize: 12, fontWeight: "bold"}} className='text-neutral-600'>|</Text>
+                                            <View className='flex-row w-fit justify-start items-center'>
+                                                <FontAwesome6 name="flag-checkered" size={7} color={' rgb(31 41 55)'} />
+                                                <Text style={{fontSize: 8}} className="text-xs text-neutral-300"> {new Date(followerWagerData.end_date).toLocaleDateString()}</Text>
+                                            </View>
                                         </View>
-                                    </Svg>
-                                    
-                                
+                                    </View>
+                                </View>
                             </View>
-                            </Shadow>
-                            <View className='flex w-full items-center'>
-                                <Text style={{fontSize: 8}} className="text-white font-semibold">{buttonText} </Text>
+                            <View className="flex-row h-fit w-fit pt-4 pr-3 space-x-0.5 justify-start items-start">
+                                <View className="h-fit w-3 rounded border border-neutral-600  px-0.5">
+                                    <Text style={{fontSize:8}} className="text-neutral-400 text-center text-xs font-bold">{Math.floor(followerWagerData.streak / 10)}</Text>
+                                </View>
+                                <View className="h-fit w-3 rounded border border-neutral-600 px-0.5">
+                                    <Text style={{fontSize:8}} className="text-neutral-400 text-center text-xs font-bold">{followerWagerData.streak % 10}</Text>
+                                </View>
                             </View>
                         </View>
-                    </View>
+                        <View className="flex-row w-full h-fit justify-center items-center">
+                            <View className='flex-row w-full justify-center'>
+                                <View className="flex items-center justify-center">
+                                    <Text className="text-neutral-300 text-md font-bold">{card_text}</Text>
+                                </View>
+                            </View>
+                        </View>
+                        <View className='flex-col h-fit w-full space-y-1 items-end justify-start pr-3 pt-2'>
+                            <Shadow startColor={'#050505'} distance={2} style={{borderRadius: 10}}>
+                                <Pressable onPress={handlePress} disabled={buttonPressed}>
+                                <View style={{borderColor: buttonPressed ? getColorAfterPress() : notButtonColorDefault}} className='flex justify-center items-center h-8 w-8 border rounded-lg'>
+                                        <Svg height="100%" width="100%" >
+                                            <Defs>
+                                                <RadialGradient id="grad" cx="50%" cy="50%" r="100%" fx="50%" fy="50%">
+                                                    <Stop offset="34%" stopColor="#0D0D0D" stopOpacity="1" />
+                                                    <Stop offset="100%" stopColor={buttonPressed ? getColorAfterPress() : notButtonColorDefault} stopOpacity="1" />
+                                                </RadialGradient>
+                                            
+                                            </Defs>
+                                            <Rect x="0" y="0" width="100%" height="100%" fill="url(#grad)" rx={7} ry={7}/>
+                                            <View className="flex h-full w-full justify-center items-center">
+                                                <Icon status={statusText} />
+                                            </View>
+                                        </Svg>
+                                        
+                                    
+                                </View>
+                                </Pressable>
+                            </Shadow>
+                        </View>
+                    </ImageBackground>
                 </View>
             </Shadow>
-            </Pressable>
         </View>
     );
 };
@@ -200,9 +264,7 @@ const FollowersList = () => {
             
             if (isSubscribed) {
                 if (data.length > 0) {
-                setFollowers(data);
-                console.log(data);
-                }
+                setFollowers(data);                }
                 setLoading(false);
             }
             } catch (error) {
@@ -224,26 +286,24 @@ const FollowersList = () => {
         }, [userId, isFocused]);
 
     return (
-        <View style={{backgroundColor: "#090909"}} className="flex-col h-full justify-center items-center pt-10">
-            <View className=" flex-col px-3 w-full h-full justify-center items-center space-y-2">
-                <View className='flex-row w-full ml-2 justify-start'>
-                    <Text style={{fontSize: 12}} className="text-white font-semibold">Motivate Your Friends</Text>
+        <View style={{backgroundColor: "#090909"}} className="flex-col h-full justify-center items-center pt-5">
+            <View className=" flex-col px-1 w-full h-full justify-center items-center space-y-1 mt-20">
+                {/* screen title */}
+                <View className='flex w-full items-start px-2'>
+                    <Text style={{fontSize: 12}} className="text-neutral-200 font-bold">Active Wagers</Text>
                 </View>
-                {/* button to open invite module */}
-                <View style={{height:"80%"}} className='flex-row w-full'>
-                    <Shadow startColor={'#050505'} distance={2}>
+                <View style={{height:"95%"}} className='flex-row w-full'>
                     <ScrollView 
                         showsVerticalScrollIndicator={false} 
                         contentContainerStyle={{alignItems: 'center', paddingBottom:5}} 
-                        className=' pb-0.5 px-1 py-1 w-full border rounded-xl border-neutral-800'
-                        style={{minWidth: '100%', height:"100%"}} // Set a minimum width to maintain full size
+                        className='pb-0.5 py-1 w-full border-t-2  border-neutral-800 rounded-xs'
+                        style={{minWidth: '100%', height:"100%", paddingHorizontal: 6}} // Set a minimum width to maintain full size
                     >
                         
                         {followers.map((follower) => (
                         <FollowerCard key={follower.followee_un} follower={follower} />
                         ))}
                     </ScrollView>
-                    </Shadow>
                 </View>
             </View>
         </View>

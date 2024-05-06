@@ -13,6 +13,7 @@ import * as Linking from 'expo-linking';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Shadow } from 'react-native-shadow-2';
 import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
+import * as Localization from 'expo-localization';
 
 
 const WagerAmountStepper = ({ amounts, selectedAmount, onAmountChange }) => {
@@ -83,6 +84,7 @@ const CreateWager = () => {
   const { user } = useUser();
   const { getToken } = useAuth();
   const nav = useRouter();
+  const tzone = Localization.getCalendars()[0].timeZone;
   
   // State for wager amount
   const [selectedAmount, setSelectedAmount] = useState(20);
@@ -156,12 +158,13 @@ const CreateWager = () => {
           user_id: user.id, 
           amount: selectedAmount,
           charity_id: selectedCharity.id,
-          start_date: startDate,
-          end_date: endDate,
+          start_date: startDate.toISOString(),
+          end_date: endDate.toISOString(),
           workout_freq: workOutDays,
           token: 'token',
           status: 'ongoing',
-          last_date_completed: null
+          last_date_completed: null,
+          time_zone: tzone
         })
     if (error) {
       console.log('error inserting new wager', error);
@@ -176,9 +179,8 @@ const CreateWager = () => {
         var result = new Date(startDate);
         result.setDate(result.getDate() + i);
         wager_tracker[result.toISOString()] = {
-          workedOut: false, 
           challengeDay: i + 1, 
-          workoutType: null
+          workoutData: null
         };
       SecureStore.setItemAsync('wager_tracker', JSON.stringify(wager_tracker));
       console.log('Wager Tracker stored');
