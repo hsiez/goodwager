@@ -16,9 +16,7 @@ const CARD_IMAGES = {
 };
 
 const WagerCalendar = ({ last_date_completed, start_date }: { last_date_completed: string | null, start_date: Date }) => {
-  const { user } = useUser();
   const [modalVisible, setModalVisible] = useState(false);
-  const [isCalModalVisible, setIsCalModalVisible] = useState(false);
   const [selectedDay, setSelectedDay] = useState('');
   const [ wagerActive, setWagerActive ] = useState( (start_date !== null) ? true : false);
   const [wagerTrackerData, setWagerTrackerData] = useState({});
@@ -60,10 +58,9 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
 
     const bg_key = data.workedOut ? "green" : "white";
     const day_bg = CARD_IMAGES[bg_key];
-    console.log(date)
 
     const Icon = () => {
-      if (date < today ) {
+      if (date < today || data.workedOut) {
         return (
           <Ionicons name="checkmark-done-circle-outline" size={24} color="#00ff00" />
         );
@@ -73,13 +70,20 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
         );
       }
     }
+
+    const handleCellPress = (week: string, day: number) => {
+      setSelectedDay(`Week: ${week}, Day: ${day}`);
+      setModalVisible(true);
+    };
+    console.log( "data", data)
     
     return (
+      <View className="">
       <TouchableOpacity
               key={`${week}-${date}`}
-              onPress={() => handleCellPress(week, data.challengeDay + 1)}
+              onPress={() => handleCellPress(week, data.challengeDay)}
               className={`flex justify-center rounded-lg h-11 w-11 p-1 ${borderInfo}`}
-              disabled={!wagerActive}
+              disabled={!wagerActive || date == today}
             >
         <View key={data.challengeDay} className="flex h-full w-full" >
               <View style={{paddingVertical: 0.5}} className={`flex-col w-full justify-center items-center rounded`}>
@@ -97,6 +101,25 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
               </View>
         </View>
       </TouchableOpacity>
+      <Modal
+      animationType="slide"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 justify-center items-center bg-black bg-opacity-50"
+          onPress={() => setModalVisible(false)}
+        >
+          <View className="bg-white p-4 rounded-lg">
+            <Text className="text-black">{selectedDay}</Text>
+            <Text className="text-black">{}</Text>
+            {/* Modal content */}
+          </View>
+        </Pressable>
+      </Modal>
+      </View>
+      
 
     );
   }
@@ -150,10 +173,6 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
     3: workoutEntries.slice(14, 21)
   };
 
-  const handleCellPress = (week: string, day: number) => {
-    setSelectedDay(`Week: ${week}, Day: ${day}`);
-    setModalVisible(true);
-  };
   return (
 
 
@@ -168,23 +187,6 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
       <Week key={3} week={week_map[3]} week_number={3}/>
     </View>
     </Shadow>
-
-      <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => setModalVisible(false)}
-      >
-        <Pressable
-          className="flex-1 justify-center items-center bg-black bg-opacity-50"
-          onPress={() => setModalVisible(false)}
-        >
-          <View className="bg-white p-4 rounded-lg">
-            <Text className="text-black">{selectedDay}</Text>
-            {/* Modal content */}
-          </View>
-        </Pressable>
-      </Modal>
     </View> 
 
   );

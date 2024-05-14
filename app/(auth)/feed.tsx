@@ -5,14 +5,14 @@ import supabaseClient from '../utils/supabase';
 import { Shadow } from 'react-native-shadow-2';
 import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import { fetchUserFromUsername, fetchFollowerWagerData } from '../utils/clerk_apis';
-import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
+import Svg, { Defs, RadialGradient, Stop, Circle } from "react-native-svg";
 import { useIsFocused } from '@react-navigation/native';
 
 
 
 const CARD_IMAGES = {
     green: require("../assets/images/feed_green_2.png"),
-    red: require("../assets/images/feed_red.png"),
+    red: require("../assets/images/prespect_middle.png"),
   };
 
 
@@ -35,7 +35,7 @@ const FollowerCard = ({follower}: {follower}) => {
     const [statusColor, setStatusColor] = useState(initialStatusColor);
     const [statusText, setStatusText] = useState(initialStatusText);
     const [card_text, setCardText] = useState("Today's Workout is Pending");
-    const notButtonColorDefault = "#fff";
+    const notButtonColorDefault = "#a3a3a3";
 
     const getColorAfterPress = () => {
         switch (statusText) {
@@ -85,7 +85,7 @@ const FollowerCard = ({follower}: {follower}) => {
             )
         }
         return (
-            <Ionicons name="barbell-outline" size={20} color={buttonPressed ? getColorAfterPress() : notButtonColorDefault} />
+            <Ionicons name="barbell-outline" size={16} color={buttonPressed ? getColorAfterPress() : notButtonColorDefault} />
         )
     }
     
@@ -160,66 +160,55 @@ const FollowerCard = ({follower}: {follower}) => {
                         <View className='flex-row w-full justify-between items-start'>
                             <View className='flex-row w-fit justify-start px-2 py-3 mb-2'>
                                 <View className='flex-row w-fit h-fit space-x-2 items-center'>
-                                    <View className='flex h-11 w-11 rounded-full p-0.5 border border-neutral-600 justify-center items-center'>
+                                    <View className='flex h-fit w-fit p-0.5 rounded-full border border-neutral-400 justify-center items-center'>
                                         <Image source={{uri: followerData.image_url}} style={{width: 40, height: 40, borderRadius: 50}} />
                                     </View>
                                     <View className='flex-col justify-center items-start w-fit'>
                                         <Text className="text-lg text-neutral-300">{followerData.first_name} {followerData.last_name}</Text>
                                         <View className='flex-row w-fit justify-start space-x-1'>
-                                            <View className='flex-row w-fit justify-start items-center'>
+                                            <View className='flex-row px-2 justify-center items-center bg-neutral-700 rounded-3xl'>
                                                 <Text style={{fontSize: 8}} className="text-xs text-neutral-300">${followerWagerData.amount}</Text>
                                             </View>
-                                            <Text style={{fontSize:12, fontWeight: "bold"}} className='text-neutral-600'>|</Text>
-                                            <View className='flex-row w-fit items-center'>
+                                            <View className='flex-row px-2 justify-center items-center bg-neutral-700 rounded-3xl'>
                                                 <Text style={{fontSize: 8}} className="text-xs text-neutral-300">{followerWagerData.workout_freq} workouts</Text>
                                             </View>
-                                            <Text style={{fontSize: 12, fontWeight: "bold"}} className='text-neutral-600'>|</Text>
-                                            <View className='flex-row w-fit justify-start items-center'>
-                                                <FontAwesome6 name="flag-checkered" size={7} color={' rgb(31 41 55)'} />
+                                            <View className='flex-row px-2 space-x-1 justify-center items-center bg-neutral-700 rounded-3xl'>
+                                                <FontAwesome6 name="flag-checkered" size={7} color={'#e5e5e5'} />
                                                 <Text style={{fontSize: 8}} className="text-xs text-neutral-300"> {new Date(followerWagerData.end_date).toLocaleDateString()}</Text>
                                             </View>
                                         </View>
                                     </View>
                                 </View>
                             </View>
-                            <View className="flex-row h-fit w-fit pt-4 pr-3 space-x-0.5 justify-start items-start">
-                                <View className="h-fit w-3 rounded border border-neutral-600  px-0.5">
-                                    <Text style={{fontSize:8}} className="text-neutral-400 text-center text-xs font-bold">{Math.floor(followerWagerData.streak / 10)}</Text>
-                                </View>
-                                <View className="h-fit w-3 rounded border border-neutral-600 px-0.5">
-                                    <Text style={{fontSize:8}} className="text-neutral-400 text-center text-xs font-bold">{followerWagerData.streak % 10}</Text>
-                                </View>
-                            </View>
                         </View>
                         <View className="flex-row w-full h-fit justify-center items-center">
                             <View className='flex-row w-full justify-center'>
-                                <View className="flex items-center justify-center">
-                                    <Text className="text-neutral-300 text-md font-bold">{card_text}</Text>
+                                <View className="flex items-center justify-center px-2 py-1 border-dashed border border-neutral-500 rounded-xl">
+                                    <Text className="text-neutral-500 text-md font-extralight">{card_text}</Text>
                                 </View>
                             </View>
                         </View>
-                        <View className='flex-col h-fit w-full space-y-1 items-end justify-start pr-3 pt-2'>
-                            <Shadow startColor={'#050505'} distance={2} style={{borderRadius: 10}}>
+                        <View className='flex-col h-fit w-full items-end justify-start pr-2'>
                                 <Pressable onPress={handlePress} disabled={buttonPressed}>
-                                <View style={{borderColor: buttonPressed ? getColorAfterPress() : notButtonColorDefault}} className='flex justify-center items-center h-8 w-8 border rounded-lg'>
-                                        <Svg height="100%" width="100%" >
-                                            <Defs>
-                                                <RadialGradient id="grad" cx="50%" cy="50%" r="100%" fx="50%" fy="50%">
-                                                    <Stop offset="34%" stopColor="#0D0D0D" stopOpacity="1" />
-                                                    <Stop offset="100%" stopColor={buttonPressed ? getColorAfterPress() : notButtonColorDefault} stopOpacity="1" />
-                                                </RadialGradient>
+                                    <View style={{borderColor: buttonPressed ? getColorAfterPress() : notButtonColorDefault}} className='flex justify-center items-center h-10 w-10 border rounded-full'>
+                                            <Svg height="100%" width="100%" >
+                                                <Defs>
+                                                    <RadialGradient id="grad" cx="50%" cy="50%" r="100%" fx="50%" fy="50%">
+                                                        <Stop offset="25%" stopColor="#171717" stopOpacity="1" />
+                                                        <Stop offset="100%" stopColor={buttonPressed ? getColorAfterPress() : notButtonColorDefault} stopOpacity="1" />
+                                                    </RadialGradient>
+                                                
+                                                </Defs>
+                                                <Circle cx="50%" cy="50%" r="50%" fill="url(#grad)" />
+                                                <View className="flex-col h-full w-full justify-center items-center">
+                                                    <Icon status={statusText} />
+                                                    <Text style={{fontSize: 6, color: buttonPressed ? getColorAfterPress() : notButtonColorDefault}} className="text-xs font-bold">{buttonText}</Text>
+                                                </View>
+                                            </Svg>
                                             
-                                            </Defs>
-                                            <Rect x="0" y="0" width="100%" height="100%" fill="url(#grad)" rx={7} ry={7}/>
-                                            <View className="flex h-full w-full justify-center items-center">
-                                                <Icon status={statusText} />
-                                            </View>
-                                        </Svg>
                                         
-                                    
-                                </View>
+                                    </View>
                                 </Pressable>
-                            </Shadow>
                         </View>
                     </ImageBackground>
                 </View>
@@ -290,13 +279,13 @@ const FollowersList = () => {
             <View className=" flex-col px-1 w-full h-full justify-center items-center space-y-1 mt-20">
                 {/* screen title */}
                 <View className='flex w-full items-start px-2'>
-                    <Text style={{fontSize: 12}} className="text-neutral-200 font-bold">Active Wagers</Text>
+                    <Text style={{fontSize: 12}} className="text-neutral-200 font-bold">Motivate your Friends</Text>
                 </View>
                 <View style={{height:"95%"}} className='flex-row w-full'>
                     <ScrollView 
                         showsVerticalScrollIndicator={false} 
                         contentContainerStyle={{alignItems: 'center', paddingBottom:5}} 
-                        className='pb-0.5 py-1 w-full border-t-2  border-neutral-800 rounded-xs'
+                        className='pb-0.5 py-1 w-full'
                         style={{minWidth: '100%', height:"100%", paddingHorizontal: 6}} // Set a minimum width to maintain full size
                     >
                         
