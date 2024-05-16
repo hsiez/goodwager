@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Modal, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
+import { View, Text, Pressable, Modal, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import React, {useState, useContext, useEffect, useLayoutEffect} from 'react';
 import { useUser, useAuth } from '@clerk/clerk-expo';
@@ -84,7 +84,7 @@ const WagerInfo = ({latest_wager, hasActiveWager}: {latest_wager: any, hasActive
     if (latest_wager.wager_id != null) {
       if (latest_wager.status === 'ongoing') {
         setStatusTitle('ACTIVE');
-        setStatusTitleColor('text-green-500');
+        setStatusTitleColor('text-neutral-300');
       }
       if (latest_wager.status === 'completed') {
         setStatusTitle('COMPLETED WAGER');
@@ -105,13 +105,7 @@ const WagerInfo = ({latest_wager, hasActiveWager}: {latest_wager: any, hasActive
   }, [latest_wager, hasActiveWager]);
   
   return (
-    <View className='flex w-full items-start'>
-      <View className='flex-col w-full justify-between'>
-        <View className='flex-row justify-start items-center space-x-1'>
-          <Text style={{fontSize: 12}} className={`${statusTitleColor} font-semibold`}>{statusTitle}</Text>
-          <Text style={{fontSize: 12}} className={`text-neutral-200 font-semibold`}>WAGER</Text>
-        </View>
-      </View>
+    <View className='flex w-full items-center'>
       <View style={{height: 103}} className="flex w-full justify-center items-center mb-1">
         <Shadow startColor={'#050505'} distance={2} style={{borderRadius: 12}}>
           <View className='flex-col min-w-full px-2 rounded-2xl justify-center items-center border border-neutral-600 space-y-2 pt-2'>
@@ -319,39 +313,9 @@ const Wager = () => {
 
   if (loading) {
     return (
-      <View style={{backgroundColor: "#090909"}} className="flex-col h-full items-center ">
-        <View className='flex-col w-full px-5 h-full py-10 justify-between items-center '>
-
-          {/* wager info loading box */}
-          <View className='flex min-w-full items-start'>
-            <View style={{height: 14, width:"100%"}} className='flex-col justify-between mb-3 '/>
-            <View className="flex w-full justify-center items-center  mb-1">
-              <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
-                <View style={{height:103, backgroundColor: "#0D0D0D"}} className='flex-col min-w-full border-neutral-800 rounded-xl border justify-center items-center'>
-                </View>
-              </Shadow>
-            </View>
-          </View>
-  
-          {/* today status loading box*/}
-          <View className='flex-col w-full h-1/4 justify-center items-center'>
-            <View style={{height: 14}} className='flex w-full items-start mb-4'/>
-            <View  className='flex w-3/5 rounded-xl'>
-              <Shadow startColor={'#050505'} paintInside={true} distance={4} style={{borderRadius: 12}}>
-                <View style={{backgroundColor: "#0D0D0D"}} className="flex h-full min-w-full justify-center items-center border-neutral-800 rounded-xl border"/>
-              </Shadow>
-            </View>
-          </View>
-
-          {/* section for overall wager progress. 28 days, 4 check point, 7 days for each check point */}
-          <View className='flex-col w-full h-1/4 justify-center items-center'>
-            <View style={{height: 14}} className='flex w-full items-start mb-4'/>
-            <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 10, flexDirection: "row", width: '100%', height:"100%" }}>
-              <View  style={{backgroundColor: "#090909"}} className="flex-col h-full min-w-full justify-between items-center p-3 border rounded-xl border-neutral-800"/>
-            </Shadow>
-          </View>
-        </View>
-    </View>
+      <View style={{backgroundColor: "#090909"}} className="flex-col h-full items-center justify-center ">
+        <ActivityIndicator size="large" />
+      </View>
     );
   }
   return (

@@ -117,12 +117,12 @@ const TodayStatus = ({ start_date, worked_out_today }: {start_date: string, work
     <View className='flex w-full items-start mb-4'>
         <View className='flex-row min-w-full justify-start items-center space-x-1'>
             <Text className="text-white text-center text-xl">Day </Text>
-            <View className="flex-row h-fit w-fit space-x-0.5">
-                <View className="h-7 w-5 rounded bg-neutral-800 border border-neutral-600 justify-center">
-                    <Text className="text-white text-center text-md font-bold">{challengeDay[0]}</Text>
+            <View className="flex-row h-fit w-fit">
+                <View className="h-fit w-fit rounded border justify-center">
+                    <Text className="text-white text-center text-xl font-bold">{challengeDay[0]}</Text>
                 </View>
-                <View className="h-7 w-5 rounded bg-neutral-800 border border-neutral-600 justify-center">
-                    <Text className="text-white text-center text-md font-bold">{challengeDay[1]}</Text>
+                <View className="h-fit w-fit rounded border justify-center">
+                    <Text className="text-white text-center text-xl font-bold">{challengeDay[1]}</Text>
                 </View>
             </View>
         </View>
@@ -132,20 +132,23 @@ const TodayStatus = ({ start_date, worked_out_today }: {start_date: string, work
             <View style={{ backgroundColor: "#0D0D0D" }} className="flex min-h-full min-w-full justify-center items-center rounded-2xl">
                 <ImageBackground source={background} resizeMode="stretch" style={{ minWidth: '100%', height: '100%' }}>
                     <View className='flex-col h-full w-full justify-center items-center'>
-                        <View className="flex-row w-full h-fit justify-center items-center space-x-2">
-                            <Text style={{ fontSize: 12 }} className="text-neutral-200 font-semibold">Complete</Text>
-                            <Ionicons name="barbell-outline" size={12} color="white" />
+                        <View className="flex-row w-full h-fit justify-center items-center space-x-1">
+                            <Ionicons name="checkmark-done-circle-outline" size={30} color="#00ff00" />
+                            <Text style={{ fontSize: 14 }} className="text-neutral-400 font-semibold">Workout Complete</Text>
                         </View>
-                        <View className="flex-col min-w-full h-fit justify-center items-center space-y-2">
-                            <View className="flex-col w-fit justify-start items-start space-y-0.5">
-                                <View className='flex px-2  justify-center items-center'>
-                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">Type: Walking</Text>
-                                </View>
-                                <View className='flex px-2 justify-center items-start rounded-3xl'>
-                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 font-medium ">Calories Burned: 11</Text>
-                                </View>
-                                <View className='flex px-2 justify-center items-start rounded-3xl'>
-                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 font-medium">Duration: 11 minutes</Text>
+                        <View className="flex-row w-full h-fit justify-between items-center p-5">
+                            
+                            <View className="flex-col h-fit justify-center items-center space-y-2">
+                                <View className="flex-col w-fit justify-start items-start space-y-0.5">
+                                    <View className='flex px-2  justify-center items-center'>
+                                        <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">Type: Walking</Text>
+                                    </View>
+                                    <View className='flex px-2 justify-center items-start rounded-3xl'>
+                                        <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 font-medium ">Calories Burned: 11</Text>
+                                    </View>
+                                    <View className='flex px-2 justify-center items-start rounded-3xl'>
+                                        <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 font-medium">Duration: 11 minutes</Text>
+                                    </View>
                                 </View>
                             </View>
                         </View>

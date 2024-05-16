@@ -113,9 +113,8 @@ export async function initBackgroundFetch() {
 
 const StartPage = () => {
   return (
-    <View style={{ flex: 1, justifyContent: 'center' }}>
-      <ActivityIndicator size="large" color="#0000ff" />
-    </View>
+    <View style={{backgroundColor: "#090909"}} className="flex-col h-full items-center justify-center ">
+      </View>
   );
 };
 
