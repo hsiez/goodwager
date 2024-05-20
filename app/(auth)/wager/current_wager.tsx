@@ -190,6 +190,8 @@ const Wager = () => {
   const { healthKitAvailable, AppleHealthKit } = useContext(HealthKitContext);
   const [possible_workout, set_possible_workout] = useState(null);
   const [dayCompleted, setDayCompleted] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [workoutEntries, setWorkoutEntries] = useState([]);
 
   function handleHealthData(date: string) {
       if (healthKitAvailable) {
@@ -208,20 +210,13 @@ const Wager = () => {
                   }
                   if (results.length > 0) {
                       console.log('Workout found', results);
-                      set_possible_workout(results[0]);
+                      set_possible_workout({start_date: results[0].start_date, end_date: results[0].end_date, calories: results[0].calories, activityName: results[0].activityName});
                   }
               }
           );
       }
   }
 
-  const worked_out_today = async() => {
-    const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString(); 
-    const last_day = await SecureStore.getItemAsync("last_day");
-    if (last_day === today) {
-      return true;
-    }
-  }
   async function updateWagerWithWorkout(today) {
       console.log('updating workout table with new workout', wager);
       const supabase = supabaseClient(await getToken({ template: 'supabase' }));
@@ -273,22 +268,31 @@ const Wager = () => {
           if (data.length > 0) {
              setHasActiveWager(true);
               setWager(data[0]);
-
           }
 
           if (hasActiveWager) {
             console.log("dates", wager.last_date_completed, today)
+            setSelectedDay(today);
             if (wager.last_date_completed != today) {
               console.log('Looking for workout data for today');
               handleHealthData(today);
               if (possible_workout != null) {
                 updateWagerWithWorkout(today);
-                const tracker = JSON.parse(await SecureStore.getItemAsync("wager_tracker"));
-                tracker[today].workedOut = true;
-                tracker[today].workoutData = possible_workout;
-                await SecureStore.setItemAsync("wager_tracker", JSON.stringify(tracker));
               }
             }
+            
+            // Get all the workouts for the current wager
+            const { data, error } = await supabase
+            .from('workouts')
+            .select()
+            .eq('wager_id', wager.wager_id)
+            .eq('user_id', user.id)
+            .order('date', { ascending: true });
+            if (error) {
+              console.log('Error fetching workouts:', error);
+              return;
+            }
+            setWorkoutEntries(data);
           }
         }
       } catch (error) {
@@ -326,12 +330,12 @@ const Wager = () => {
  
         {/* if there is an active wager, show Todays stats: status, pokes, use rest day*/}
         <View className='flex-col w-full h-1/4 justify-center items-center'>
-          <TodayStatus start_date={wager.start_date}  worked_out_today={possible_workout != null}/>
+          <TodayStatus start_date={wager.start_date}  selected_day={selectedDay}/>
         </View>
 
         {/* section for overall wager progress. 28 days, 4 check point, 7 days for each check point */}
         <View className='flex-col w-full h-1/4 justify-center items-center'>
-          <WagerCalendar last_date_completed={wager.last_date_completed} start_date={wager.start_date} />
+          <WagerCalendar last_date_completed={wager.last_date_completed} start_date={wager.start_date} select_day={setSelectedDay} selected_day={selectedDay} workouts={workoutEntries} />
         </View>
       </View>
 

@@ -15,15 +15,22 @@ const CARD_IMAGES = {
   white: require("../assets/images/cw2.png"),
 };
 
-const WagerCalendar = ({ last_date_completed, start_date }: { last_date_completed: string | null, start_date: Date }) => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedDay, setSelectedDay] = useState('');
+type Workout = {
+  calories: string;
+  created_at: string;
+  date: string;
+  id: number;
+  type: string;
+  user_id: string;
+  wager_id: string;
+};
+
+type Workouts = Array<Workout>;
+
+const WagerCalendar = ({ last_date_completed, start_date, select_day, selected_day, workouts }: { last_date_completed: string | null, start_date: Date, select_day: Function, selected_day, workouts: Workouts }) => {
   const [ wagerActive, setWagerActive ] = useState( (start_date !== null) ? true : false);
   const [wagerTrackerData, setWagerTrackerData] = useState({});
-  const [currentWeek, setCurrentWeek] = useState(1);
-  const [todayNumber, setTodayNumber] = useState(0);
   const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-
 
   const SingleDay = ({ week, index }) => {
     const date = index[0];
@@ -32,6 +39,7 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
     const [borderInfo, setBorderInfo] = useState("");
     const [numberBg, setNumberBg] = useState('');
     const [numberTextColor, setNumberTextColor] = useState('#262626');
+    const [dayCompleted, setDayCompleted] = useState(false);
 
 
     useEffect(() => {
@@ -46,21 +54,32 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
         setNumberTextColor("black");
       }
       */}
-      if (date < today) {
+      if (date > today) {
+        return;
+      }
+      if (date <= today) {
         setNumberTextColor("#e5e5e5");
       }
-      if (today === date) {
+      if (selected_day === date) {
         setBorderInfo("border-neutral-500 border");
         setNumberTextColor("#e5e5e5");
       }
-    }, [data.challengeDay]); 
+      console.log("Workouts", workouts);
+      workouts.some(workout => {
+        if (new Date(workout.date).toISOString === new Date(date).toISOString) {
+          setDayCompleted(true);
+          console.log("Day completed", date);
+        }
+      }
+      );
+    }, [data.challengeDay, selected_day === date]); 
 
 
     const bg_key = data.workedOut ? "green" : "white";
     const day_bg = CARD_IMAGES[bg_key];
 
     const Icon = () => {
-      if (date < today || data.workedOut) {
+      if (dayCompleted) {
         return (
           <Ionicons name="checkmark-done-circle-outline" size={24} color="#00ff00" />
         );
@@ -71,19 +90,17 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
       }
     }
 
-    const handleCellPress = (week: string, day: number) => {
-      setSelectedDay(`Week: ${week}, Day: ${day}`);
-      setModalVisible(true);
+    const handleCellPress = () => {
+      select_day(date);
     };
-    console.log( "data", data)
     
     return (
       <View className="">
       <TouchableOpacity
               key={`${week}-${date}`}
-              onPress={() => handleCellPress(week, data.challengeDay)}
+              onPress={() => handleCellPress()}
               className={`flex justify-center rounded-lg h-11 w-11 p-1 ${borderInfo}`}
-              disabled={!wagerActive || date == today}
+              disabled={!wagerActive || date > today}
             >
         <View key={data.challengeDay} className="flex h-full w-full" >
               <View style={{paddingVertical: 0.5}} className={`flex-col w-full justify-center items-center rounded`}>
@@ -101,23 +118,6 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
               </View>
         </View>
       </TouchableOpacity>
-      <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => setModalVisible(false)}
-      >
-        <Pressable
-          className="flex-1 justify-center items-center bg-black bg-opacity-50"
-          onPress={() => setModalVisible(false)}
-        >
-          <View className="bg-white p-4 rounded-lg">
-            <Text className="text-black">{selectedDay}</Text>
-            <Text className="text-black">{}</Text>
-            {/* Modal content */}
-          </View>
-        </Pressable>
-      </Modal>
       </View>
       
 
@@ -136,35 +136,28 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
 
   useEffect(() => {
     async function setUpCalendar() {
+      console.log("workouts", workouts);
       if (start_date !== null) {
         setWagerTrackerData(JSON.parse(await SecureStore.getItemAsync("wager_tracker")));
       }
-    }
-    if (start_date !== null){
-      setUpCalendar();
-      for (let i = 0; i < 3; i++) {
-        if (todayNumber >= weeks[i][0] && todayNumber <= weeks[i][1]) {
-          setCurrentWeek(i + 1);
-        }
+      else {
+        console.log("Setting up placeholder calendar");
+            const workoutDataFlat = {};
+            for (let i = 0; i < 21; i++) {
+              var result = new Date(today);
+              result.setDate(result.getDate() + i);
+              workoutDataFlat[result.toString()] = {
+                challengeDay: i + 1, 
+              };
+            setWagerTrackerData(workoutDataFlat);
+          }
       }
     }
-    else {
-      console.log("Setting up calendar");
-          const workoutDataFlat = {};
-          for (let i = 0; i < 21; i++) {
-            var result = new Date(start_date);
-            result.setDate(result.getDate() + i);
-            workoutDataFlat[result.toString()] = {
-              challengeDay: i + 1, 
-              workoutData: null
-            };
-            if (result.toString() === today) {
-              setTodayNumber(i + 1);
-            }
-          setWagerTrackerData(workoutDataFlat);
-        }
+
+    if (start_date !== null){
+      setUpCalendar();
     }
-  }, [ start_date]);
+  }, [ start_date ]);
 
   const workoutEntries = Object.entries(wagerTrackerData);
   const week_map = {
@@ -172,7 +165,6 @@ const WagerCalendar = ({ last_date_completed, start_date }: { last_date_complete
     2: workoutEntries.slice(7, 14),
     3: workoutEntries.slice(14, 21)
   };
-
   return (
 
 

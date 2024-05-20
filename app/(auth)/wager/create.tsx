@@ -180,7 +180,6 @@ const CreateWager = () => {
         result.setDate(result.getDate() + i);
         wager_tracker[result.toISOString()] = {
           challengeDay: i + 1, 
-          workoutData: null
         };
       SecureStore.setItemAsync('wager_tracker', JSON.stringify(wager_tracker));
       console.log('Wager Tracker stored');
