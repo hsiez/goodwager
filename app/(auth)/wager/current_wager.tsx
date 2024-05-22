@@ -190,7 +190,7 @@ const Wager = () => {
   const { healthKitAvailable, AppleHealthKit } = useContext(HealthKitContext);
   const [possible_workout, set_possible_workout] = useState(null);
   const [dayCompleted, setDayCompleted] = useState(false);
-  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
   const [workoutEntries, setWorkoutEntries] = useState([]);
 
   function handleHealthData(date: string) {
@@ -330,7 +330,7 @@ const Wager = () => {
  
         {/* if there is an active wager, show Todays stats: status, pokes, use rest day*/}
         <View className='flex-col w-full h-1/4 justify-center items-center'>
-          <TodayStatus start_date={wager.start_date}  selected_day={selectedDay}/>
+          <TodayStatus start_date={wager.start_date}  selected_day={selectedDay} workouts={workoutEntries}/>
         </View>
 
         {/* section for overall wager progress. 28 days, 4 check point, 7 days for each check point */}

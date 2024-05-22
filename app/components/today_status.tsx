@@ -9,11 +9,11 @@ import Svg, { Defs, RadialGradient, Stop, Circle } from "react-native-svg";
 import * as SecureStore from 'expo-secure-store';
 
 const CARD_IMAGES = {
-    green: require("../assets/images/today_green.png"),
+    green: require("../assets/images/today_white.png"),
     white: require("../assets/images/today_white.png"),
 };
 
-const TodayStatus = ({ start_date, selected_day }) => {
+const TodayStatus = ({ start_date, selected_day, workouts }) => {
     const { userId, getToken } = useAuth();
     const isFocused = useIsFocused();
     const [challengeDay, setChallengeDay] = useState([0, 0]);
@@ -24,6 +24,8 @@ const TodayStatus = ({ start_date, selected_day }) => {
     const [statusColor, setStatusColor] = useState('black');
     const [statusText, setStatusText] = useState('No Workout Detected');
     const [workoutStatus, setWorkoutStatus] = useState("Incomplete");
+    const [icon, setIcon] = useState<'ellipse-outline' | 'checkmark-done-circle-outline'>('ellipse-outline');
+    const [iconColor, setIconColor] = useState('#e5e5e5');
 
     async function fetchNotifications() {
         const supabase = supabaseClient(await getToken({ template: 'supabase' }));
@@ -52,7 +54,7 @@ const TodayStatus = ({ start_date, selected_day }) => {
                     </Defs>
                     <Circle cx="50%" cy="50%" r="50%" fill="url(#grad)" />
                     <View className="flex h-full w-full justify-center items-center ">
-                        <Ionicons name={`${notifIcon}`} size={12} color={notifColor} />
+                        <Ionicons name={notifIcon as any} size={12} color={notifColor} />
                     </View>
                 </Svg>
             </View>
@@ -64,11 +66,26 @@ const TodayStatus = ({ start_date, selected_day }) => {
             if (!start_date) {
                 return;
             }
+
             const tracker = JSON.parse(await SecureStore.getItemAsync("wager_tracker"));
-            const selectedData = tracker[selected_day];
-            setSelectedDayData(selectedData);
-            console.log('Selected Day Data:', selectedData);
-            const Difference_In_Days = selectedData.challengeDay;
+            const selectedCache = tracker[selected_day];
+            const Difference_In_Days = selectedCache.challengeDay;
+
+            const foundWorkout = workouts.find(workout => {
+                return new Date(workout.date).toISOString() === new Date(selected_day).toISOString();
+            });
+
+            if (foundWorkout) {
+                setSelectedDayData({
+                    calories: foundWorkout.calories,
+                    date: foundWorkout.date,
+                    type: foundWorkout.type,
+                    duration: foundWorkout.duration,
+                    challengeDay: Difference_In_Days
+                });
+            } else {
+                setSelectedDayData(null);
+            }
 
             if (Difference_In_Days < 10) {
                 setChallengeDay([0, Difference_In_Days]);
@@ -76,17 +93,21 @@ const TodayStatus = ({ start_date, selected_day }) => {
                 setChallengeDay([Math.floor(Difference_In_Days / 10), Difference_In_Days % 10]);
             }
 
-            if (selectedData.workoutData !== null) {
+            if (foundWorkout) {
                 console.log('Workout Detected');
                 setStatusColor('#71BC78');
                 setStatusText('Workout Detected');
                 setWorkoutStatus("Complete");
                 setBackground(CARD_IMAGES['green']);
+                setIcon('checkmark-done-circle-outline');
+                setIconColor('#00ff00');
             } else {
                 console.log('No Workout Detected');
                 setStatusColor('rgb(253 186 116)');
                 setStatusText('No Workout Detected');
                 setBackground(CARD_IMAGES['white']);
+                setIcon('ellipse-outline');
+                setIconColor('#e5e5e5');
             }
         }
 
@@ -134,21 +155,49 @@ const TodayStatus = ({ start_date, selected_day }) => {
                     <View style={{ backgroundColor: "#0D0D0D" }} className="flex min-h-full min-w-full justify-center items-center rounded-2xl">
                         <ImageBackground source={background} resizeMode="stretch" style={{ minWidth: '100%', height: '100%' }}>
                             <View className='flex-col h-full w-full justify-center items-center'>
-                                <View className="flex-row w-full h-fit justify-center items-center space-x-1">
-                                    <Ionicons name="checkmark-done-circle-outline" size={30} color={statusColor} />
-                                    <Text style={{ fontSize: 14 }} className="text-neutral-400 font-semibold">{statusText}</Text>
+                                <View className="flex-row w-full h-fit justify-start items-center space-x-1 ">
+                                    <Ionicons name={icon} size={25} color={iconColor} />
+                                    <View className="flex w-fit h-fit">
+                                        <Text style={{ fontSize: 12 }} className="text-neutral-400 font-semibold">{statusText}</Text>
+                                    </View>
                                 </View>
                                 <View className="flex-row w-full h-fit justify-between items-center p-5">
-                                    <View className="flex-col h-fit justify-center items-center space-y-2">
-                                        <View className="flex-col w-fit justify-start items-start space-y-0.5">
-                                            <View className='flex px-2 justify-center items-center'>
-                                                <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">Type: {selectedDayData?.workoutData?.type || 'N/A'}</Text>
+                                    <View className="flex-col w-full h-fit justify-center items-center">
+                                        <View className="flex-col w-full justify-start items-start space-y-0.5">
+                                            <View className='flex-row w-full px-2 space-x-4 justify-center items-center'>
+                                                <View className='flex-row w-1/2 h-fit justify-start items-center'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">Type:</Text>
+                                                </View>
+                                                <View className='flex-row w-1/2 h-fit justify-start items-center'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">{selectedDayData?.type || ""}</Text>
+                                                </View>
                                             </View>
-                                            <View className='flex px-2 justify-center items-start rounded-3xl'>
-                                                <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 font-medium ">Calories Burned: {selectedDayData?.workoutData?.calories || 'N/A'}</Text>
+
+                                            <View className='flex-row w-full px-2 space-x-4 justify-center items-center'>
+                                                <View className='flex-row w-1/2 h-fit justify-start items-center'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">Calories:</Text>
+                                                </View>
+                                                <View className='flex-row w-1/2 h-fit justify-start items-center'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">{selectedDayData?.calories || ""}</Text>
+                                                </View>
                                             </View>
-                                            <View className='flex px-2 justify-center items-start rounded-3xl'>
-                                                <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 font-medium">Duration: {selectedDayData?.workoutData?.duration || 'N/A'}</Text>
+
+                                            <View className='flex-row w-full px-2 space-x-4 justify-center items-center'>
+                                                <View className='flex-row w-1/2 h-fit justify-start items-center '>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">Duration:</Text>
+                                                </View>
+                                                <View className='flex-row w-1/2 h-fit justify-start items-center'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">{selectedDayData?.duration || ""}</Text>
+                                                </View>
+                                            </View>
+                                            
+                                            <View className='flex-row w-full px-2 space-x-4 justify-center items-center'>
+                                                <View className='flex-row w-1/2 h-fit justify-start items-center'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">Date:</Text>
+                                                </View>
+                                                <View className='flex-row w-1/2 h-fit justify-start items-center '>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 font-medium">{selectedDayData?.date || ""}</Text>
+                                                </View>
                                             </View>
                                         </View>
                                     </View>
