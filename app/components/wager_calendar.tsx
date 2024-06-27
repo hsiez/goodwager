@@ -19,6 +19,7 @@ type Workout = {
   type: string;
   user_id: string;
   wager_id: string;
+  duration: number
 };
 
 type Workouts = Array<Workout>;
@@ -49,7 +50,7 @@ const WagerCalendar = ({ last_date_completed, start_date, select_day, selected_d
     }
 
     setUpCalendar();
-  }, [start_date, today, workouts]); // Added `workouts` as a dependency
+  }, [start_date, today, workouts, selected_day]); // Added `workouts` as a dependency
 
   const workoutEntries = Object.entries(wagerTrackerData);
   const week_map = {
@@ -66,6 +67,8 @@ const WagerCalendar = ({ last_date_completed, start_date, select_day, selected_d
     const [numberBg, setNumberBg] = useState('');
     const [numberTextColor, setNumberTextColor] = useState('#262626');
     const [dayCompleted, setDayCompleted] = useState(false);
+    const [icon, setIcon] = useState<'ellipse-outline' | 'checkmark-done-circle-outline'>('ellipse-outline');
+    const [iconColor, setIconColor] = useState('#262626');   
 
     useEffect(() => {
       if (data.challengeDay < 10) {
@@ -91,29 +94,20 @@ const WagerCalendar = ({ last_date_completed, start_date, select_day, selected_d
         if (new Date(workout.date).toISOString() === new Date(date).toISOString()) {
           setDayCompleted(true);
           console.log("Day completed", date);
+          setIcon('checkmark-done-circle-outline');
+          setIconColor('#00ff00');
           return true;
         }
         return false;
       });
 
-      if (!workoutFound) {
+      if (workoutFound === false) {
         setDayCompleted(false);
+        setIcon('ellipse-outline');
+        setIconColor('#e5e5e5');
       }
 
-    }, [data.challengeDay, selected_day, date, workouts, today]);
-
-    const Icon = () => {
-      if (dayCompleted) {
-        return (
-          <Ionicons name="checkmark-done-circle-outline" size={24} color="#00ff00" />
-        );
-      } else {
-        return (
-          <Ionicons name="ellipse-outline" size={24} color={numberTextColor} />
-        );
-      }
-    }
-
+    }, [selected_day, index, icon]);
     const handleCellPress = () => {
       select_day(date);
     };
@@ -129,7 +123,7 @@ const WagerCalendar = ({ last_date_completed, start_date, select_day, selected_d
           <View key={data.challengeDay} className="flex h-full w-full">
             <View style={{ paddingVertical: 0.5 }} className={`flex-col w-full justify-center items-center rounded`}>
               <View className="flex justify-center items-center">
-                <Icon />
+                <Ionicons name={icon} size={24} color={iconColor} />
               </View>
               <View className="flex-row h-fit w-fit justify-center items-center space-x-0.5">
                 <View className={`flex justify-center items-center rounded h-4 w-2 ${numberBg}`}>
@@ -146,26 +140,21 @@ const WagerCalendar = ({ last_date_completed, start_date, select_day, selected_d
     );
   }
 
-  const Week = ({ week, week_number }) => {
+  const Week = ({ week, week_number, bg_color }) => {
     return (
-      <View className="flex-row w-full h-fit justify-between items-center">
+      <View style={{backgroundColor: bg_color}} className="flex-row w-full h-fit justify-between items-center rounded-lg">
         {week.map((index) => (<SingleDay key={index} week={week_number} index={index} />))}
       </View>
     );
   }
 
   return (
-    <View className='flex-col h-full w-full justify-center items-center'>
-      <View className='flex-row w-full items-center justify-start mb-2 px-1'>
-        <Text style={{ fontSize: 12 }} className="text-white font-semibold">Progress</Text>
-      </View>
-      <Shadow startColor={'#050505'} distance={0} style={{ borderRadius: 10 }}>
-        <View className="flex h-full w-full justify-center items-center py-2">
-          <Week key={1} week={week_map[1]} week_number={1} />
-          <Week key={2} week={week_map[2]} week_number={2} />
-          <Week key={3} week={week_map[3]} week_number={3} />
+    <View className='flex-col h-full w-full justify-center items-center py-2'>
+        <View className="flex-col h-full w-full justify-between items-center">
+          <Week key={1} week={week_map[1]} week_number={1} bg_color={""}/>
+          <Week key={2} week={week_map[2]} week_number={2} bg_color={"#0D0D0D"}/>
+          <Week key={3} week={week_map[3]} week_number={3} bg_color={""}/>
         </View>
-      </Shadow>
     </View>
   );
 };

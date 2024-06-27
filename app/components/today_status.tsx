@@ -7,6 +7,7 @@ import supabaseClient from '../utils/supabase';
 import { useIsFocused } from '@react-navigation/native';
 import Svg, { Defs, RadialGradient, Stop, Circle } from "react-native-svg";
 import * as SecureStore from 'expo-secure-store';
+import CornerBorder from './corner_border';
 
 const CARD_IMAGES = {
     green: require("../assets/images/today_white.png"),
@@ -22,7 +23,7 @@ const TodayStatus = ({ start_date, selected_day, workouts }) => {
     const [background, setBackground] = useState(CARD_IMAGES['white']);
     const [selectedDayData, setSelectedDayData] = useState(null);
     const [statusColor, setStatusColor] = useState('black');
-    const [statusText, setStatusText] = useState('No Workout Detected');
+    const [statusText, setStatusText] = useState('Workout Incomplete');
     const [workoutStatus, setWorkoutStatus] = useState("Incomplete");
     const [icon, setIcon] = useState<'ellipse-outline' | 'checkmark-done-circle-outline'>('ellipse-outline');
     const [iconColor, setIconColor] = useState('#e5e5e5');
@@ -96,7 +97,7 @@ const TodayStatus = ({ start_date, selected_day, workouts }) => {
             if (foundWorkout) {
                 console.log('Workout Detected');
                 setStatusColor('#71BC78');
-                setStatusText('Workout Detected');
+                setStatusText('Completed');
                 setWorkoutStatus("Complete");
                 setBackground(CARD_IMAGES['green']);
                 setIcon('checkmark-done-circle-outline');
@@ -104,10 +105,10 @@ const TodayStatus = ({ start_date, selected_day, workouts }) => {
             } else {
                 console.log('No Workout Detected');
                 setStatusColor('rgb(253 186 116)');
-                setStatusText('No Workout Detected');
+                setStatusText('Incomplete');
                 setBackground(CARD_IMAGES['white']);
                 setIcon('ellipse-outline');
-                setIconColor('#e5e5e5');
+                setIconColor('rgb(163 163 163)');
             }
         }
 
@@ -134,79 +135,77 @@ const TodayStatus = ({ start_date, selected_day, workouts }) => {
     if (!selected_day) {
         return null;
     }
+    console.log('Selected Day:', selected_day);
 
     return (
         <View className="flex h-full w-full justify-center items-center">
-            <View className='flex w-full items-start mb-4'>
-                <View className='flex-row min-w-full justify-start items-center space-x-1'>
-                    <Text className="text-white text-center text-xl">Day </Text>
-                    <View className="flex-row h-fit w-fit">
-                        <View className="h-fit w-fit rounded border justify-center">
-                            <Text className="text-white text-center text-xl font-bold">{challengeDay[0]}</Text>
-                        </View>
-                        <View className="h-fit w-fit rounded border justify-center">
-                            <Text className="text-white text-center text-xl font-bold">{challengeDay[1]}</Text>
-                        </View>
-                    </View>
-                </View>
-            </View>
-            <View className='flex w-3/5 rounded-xl justify-center relative'>
-                <Shadow startColor={'black'} distance={5} style={{ borderRadius: 15 }}>
-                    <View style={{ backgroundColor: "#0D0D0D" }} className="flex min-h-full min-w-full justify-center items-center rounded-2xl">
-                        <ImageBackground source={background} resizeMode="stretch" style={{ minWidth: '100%', height: '100%' }}>
-                            <View className='flex-col h-full w-full justify-center items-center'>
-                                <View className="flex-row w-full h-fit justify-start items-center space-x-1 ">
-                                    <Ionicons name={icon} size={25} color={iconColor} />
-                                    <View className="flex w-fit h-fit">
-                                        <Text style={{ fontSize: 12 }} className="text-neutral-400 font-semibold">{statusText}</Text>
-                                    </View>
+            <View className='flex w-4/5 rounded-xl justify-center relative'>
+                <View className="flex min-h-full min-w-full justify-center items-center">
+                    <CornerBorder>
+                        <View className='flex-col h-full w-full justify-between items-center px-4 py-4'>
+                            <View className="flex-row w-full h-fit justify-between items-center">
+                                < View className="flex w-fit h-fit px-2 py-1 justify-center items-center">
+                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 font-semibold">Day: {challengeDay[0]}{challengeDay[1]}</Text>
                                 </View>
+                                <View className="flex-row w-fit h-fit px-3 py-1 justify-center items-center space-x-2 rounded-xl bg-stone-700">
+                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 font-semibold">{statusText}</Text>
+                                    <Ionicons name={icon} size={12} color={iconColor} />
+                                </View>
+                            </View>
+                            {/*start_date && workoutStatus === "Complete"*/ true ? (
                                 <View className="flex-row w-full h-fit justify-between items-center p-5">
-                                    <View className="flex-col w-full h-fit justify-center items-center">
-                                        <View className="flex-col w-full justify-start items-start space-y-0.5">
-                                            <View className='flex-row w-full px-2 space-x-4 justify-center items-center'>
-                                                <View className='flex-row w-1/2 h-fit justify-start items-center'>
-                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">Type:</Text>
+                                    <View className="flex-col w-full h-fit justify-center items-center space-y-6">
+                                        <View className="flex-row w-full justify-between items-center">
+                                            <View className='flex-col w-fit justify-center items-center'>
+                                                <View className='flex-row w-fit h-fit justify-start items-center border-emerald-400 border-b-2 pb-1 mb-1'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 text-start font-bold px-6 rounded-2xl">Type</Text>
                                                 </View>
-                                                <View className='flex-row w-1/2 h-fit justify-start items-center'>
-                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">{selectedDayData?.type || ""}</Text>
-                                                </View>
-                                            </View>
-
-                                            <View className='flex-row w-full px-2 space-x-4 justify-center items-center'>
-                                                <View className='flex-row w-1/2 h-fit justify-start items-center'>
-                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">Calories:</Text>
-                                                </View>
-                                                <View className='flex-row w-1/2 h-fit justify-start items-center'>
-                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">{selectedDayData?.calories || ""}</Text>
+                                                <View className='flex-row w-fit h-fit justify-start items-center'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 text-start font-medium ">{selectedDayData?.type || "Pending"}</Text>
                                                 </View>
                                             </View>
 
-                                            <View className='flex-row w-full px-2 space-x-4 justify-center items-center'>
-                                                <View className='flex-row w-1/2 h-fit justify-start items-center '>
-                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">Duration:</Text>
+                                            <View className='flex-col w-fit justify-center items-center'>
+                                                <View className='flex-row w-fit h-fit justify-start items-center border-rose-400 border-b-2 pb-1 mb-1'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 text-start font-bold px-4 rounded-2xl">Calories</Text>
                                                 </View>
-                                                <View className='flex-row w-1/2 h-fit justify-start items-center'>
-                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">{selectedDayData?.duration || ""}</Text>
+                                                <View className='flex-row w-fit h-fit justify-center items-center'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 font-medium">{selectedDayData?.calories || "0"}</Text>
+                                                </View>
+                                            </View>
+                                        </View>
+                                        <View className="flex-row w-full justify-between items-center">
+                                            <View className='flex-col w-fit justify-center items-center'>
+                                                <View className='flex-row w-fit h-fit justify-start items-center border-yellow-400 border-b-2 pb-1 mb-1'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 text-start font-bold  px-4 rounded-2xl">Duration</Text>
+                                                </View>
+                                                <View className='flex-row w-fit h-fit justify-start items-center'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 text-start font-medium">{selectedDayData?.duration || "0 mins"}</Text>
                                                 </View>
                                             </View>
                                             
-                                            <View className='flex-row w-full px-2 space-x-4 justify-center items-center'>
-                                                <View className='flex-row w-1/2 h-fit justify-start items-center'>
-                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 text-start font-medium">Date:</Text>
+                                            <View className='flex-col w-fit justify-center items-center'>
+                                                <View className='flex-row w-fit h-fit justify-start items-center border-orange-400 border-b-2 pb-1 mb-1'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 text-start font-bold px-6">Date</Text>
                                                 </View>
-                                                <View className='flex-row w-1/2 h-fit justify-start items-center '>
-                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ml-1 font-medium">{selectedDayData?.date || ""}</Text>
+                                                <View className='flex-row w-fit h-fit justify-start items-center'>
+                                                    <Text style={{ fontSize: 10 }} className="text-neutral-400 font-medium">{new Date(selected_day).toLocaleString('default', { month: 'short', day: 'numeric', year: 'numeric'}) || ""}</Text>
                                                 </View>
                                             </View>
                                         </View>
                                     </View>
                                 </View>
-                            </View>
-                        </ImageBackground>
-                    </View>
-                </Shadow>
-                <View className="absolute bottom-0 right-0 flex-row h-fit items-center justify-center border-l border-t rounded-tl-lg border-neutral-600">
+                            ) : (
+                                <View className="flex-1 w-full justify-center items-center">
+                                    <View className="flex w-fit h-fit justify-center items-center px-4 py-4">
+                                        <Text style={{ fontSize: 20 }} className="text-neutral-800">Workout Pending</Text>
+                                    </View>
+                                </View>
+                            )}
+                        </View>
+                    </CornerBorder>
+                </View>
+                <View className="absolute bottom-0 right-0 flex-row h-fit items-center justify-center">
                     <Pressable onPress={() => setIsModalVisible(true)} className="flex-row w-1/3 h-4 justify-center space-x-1 items-center">
                         <View className="flex-row w-1/3 h-4 justify-center space-x-1 items-center">
                             <View className={`h-2 w-2 rounded-full ${notifications.length > 0 ? 'bg-green-400' : 'bg-neutral-300'}`} />

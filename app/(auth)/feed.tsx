@@ -184,29 +184,14 @@ const FollowerCard = ({follower}: {follower}) => {
                         <View className="flex-row w-full h-fit justify-center items-center">
                             <View className='flex-row w-full justify-center'>
                                 <View className="flex items-center justify-center px-2 py-1 border-dashed border border-neutral-500 rounded-xl">
-                                    <Text className="text-neutral-500 text-md font-extralight">{card_text}</Text>
+                                    <Text className="text-neutral-500 text-md font-light">{card_text}</Text>
                                 </View>
                             </View>
                         </View>
                         <View className='flex-col h-fit w-full items-end justify-start pr-2'>
                                 <Pressable onPress={handlePress} disabled={buttonPressed}>
-                                    <View style={{borderColor: buttonPressed ? getColorAfterPress() : notButtonColorDefault}} className='flex justify-center items-center h-10 w-10 border rounded-full'>
-                                            <Svg height="100%" width="100%" >
-                                                <Defs>
-                                                    <RadialGradient id="grad" cx="50%" cy="50%" r="100%" fx="50%" fy="50%">
-                                                        <Stop offset="25%" stopColor="#171717" stopOpacity="1" />
-                                                        <Stop offset="100%" stopColor={buttonPressed ? getColorAfterPress() : notButtonColorDefault} stopOpacity="1" />
-                                                    </RadialGradient>
-                                                
-                                                </Defs>
-                                                <Circle cx="50%" cy="50%" r="50%" fill="url(#grad)" />
-                                                <View className="flex-col h-full w-full justify-center items-center">
-                                                    <Icon status={statusText} />
-                                                    <Text style={{fontSize: 6, color: buttonPressed ? getColorAfterPress() : notButtonColorDefault}} className="text-xs font-bold">{buttonText}</Text>
-                                                </View>
-                                            </Svg>
-                                            
-                                        
+                                    <View style={{borderColor: buttonPressed ? getColorAfterPress() : notButtonColorDefault}} className='flex justify-center items-center p-2 border rounded-xl'>
+                                        <Icon status={statusText} />
                                     </View>
                                 </Pressable>
                         </View>

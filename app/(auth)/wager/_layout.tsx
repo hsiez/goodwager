@@ -5,9 +5,9 @@ const WagerStack = () => {
     return (
         <Stack
         screenOptions={{
-            headerShown: true,
+            headerShown: false,
             headerStyle: {
-                backgroundColor: "#080808", // Correct property for background color
+                backgroundColor: "rgb(212 212 212)", // Correct property for background color
                 
             },
             headerBackTitleVisible: false,
