@@ -148,13 +148,12 @@ const Profile = () => {
 
   const FriendList = () => {
     // Sample data for the list
-    const [friends, setFriends] = useState([]);
     const [followers, setFollowers] = useState([]);
   
     // The delete function
     const onDelete = (friendId) => {
       // Update the state to remove the friend
-      setFriends((friends) => friends.filter((friend) => friend.id !== friendId));
+      setFollowers((followers) => followers.filter((friend) => friend.id !== friendId));
       
       // If you have a backend to sync with, you would also send a request to delete the friend from the database
     };
@@ -173,6 +172,12 @@ const Profile = () => {
       fetchFriends();
     }
     , [userId]);
+
+    if (followers.length === 0) {
+      return (
+        <View style={{minWidth: '100%', backgroundColor: '#0D0D0D'}} className='flex-row w-full h-3/5 justify-center items-center border rounded-xl border-neutral-800' />
+      );
+    }
     return (
       <View className='flex-row w-full h-3/5 justify-center items-center'>
         <Shadow startColor={'#050505'} distance={2} style={{borderRadius:12}}>

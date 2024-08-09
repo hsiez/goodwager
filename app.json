@@ -7,7 +7,8 @@
     "plugins": [
       "expo-router",
       "expo-localization",
-      "react-native-health"
+      "react-native-health",
+      "expo-secure-store"
     ],
     "name": "goodwager",
     "slug": "goodwager",

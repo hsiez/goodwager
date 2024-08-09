@@ -6,10 +6,6 @@ import * as SecureStore from 'expo-secure-store';
 
 const weeks = [[1, 7], [8, 14], [15, 21]];
 
-const CARD_IMAGES = {
-  green: require("../assets/images/cg1.png"),
-  white: require("../assets/images/cw2.png"),
-};
 
 type Workout = {
   calories: string;
@@ -24,7 +20,7 @@ type Workout = {
 
 type Workouts = Array<Workout>;
 
-const WagerCalendar = ({ last_date_completed, start_date, select_day, selected_day, workouts }: { last_date_completed: string | null, start_date: Date, select_day: Function, selected_day, workouts: Workouts }) => {
+const WagerCalendar = ({ start_date, select_day, selected_day, workouts }: { start_date: Date, select_day: Function, selected_day, workouts: Workouts }) => {
   const [wagerActive, setWagerActive] = useState((start_date !== null));
   const [wagerTrackerData, setWagerTrackerData] = useState({});
   const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();

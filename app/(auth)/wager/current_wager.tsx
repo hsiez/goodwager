@@ -6,7 +6,6 @@ import TodayStatus from '../../components/today_status';
 import WagerCalendar from '../../components/wager_calendar';
 import { Link } from "expo-router";
 import supabaseClient from '../../utils/supabase';
-import * as SecureStore from 'expo-secure-store';
 import charity_map from '../../utils/charity_map';
 import { Shadow } from 'react-native-shadow-2';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,7 +14,8 @@ import HealthKitContext from '../../components/HealthkitContext';
 import LinearGradient from 'react-native-linear-gradient';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { Activities } from '../../utils/activity_map';
-import CornerBorder from '../../components/corner_border';
+import { debounce } from 'lodash';
+import registerForPushNotificationsAsync  from '../../utils/push_token';
 
 const ShimmerButton = ({ title, onPress }) => {
   const [isShimmering, setIsShimmering] = useState(true);
@@ -68,7 +68,6 @@ const WagerInfo = ({ latest_wager, hasActiveWager }) => {
   const [amount, setAmount] = useState(0);
   const [statusTitle, setStatusTitle] = useState('UNACTIVE');
   const [statusTitleColor, setStatusTitleColor] = useState('text-neutral-500');
-  const [workoutFreq, setWorkoutFreq] = useState(0);
   const [start, setStart] = useState('TBD');
   const [end, setEnd] = useState('TBD');
 
@@ -89,7 +88,6 @@ const WagerInfo = ({ latest_wager, hasActiveWager }) => {
       setStart(new Date(latest_wager.start_date).toLocaleString('default', { month: 'short', day: 'numeric', year: 'numeric' }));
       setEnd(new Date(latest_wager.end_date).toLocaleString('default', { month: 'short', day: 'numeric', year: 'numeric' }));
       setAmount(latest_wager.amount);
-      setWorkoutFreq(latest_wager.workout_freq);
     }
   }, [latest_wager, hasActiveWager]);
 
@@ -114,20 +112,21 @@ const WagerInfo = ({ latest_wager, hasActiveWager }) => {
           </View>
           <View className="flex-row w-full space-x-2 mb-2 justify-center items-center">
             <View className='flex-row w-full justify-between items-center' >
-              <View className='flex-row px-2 py-1 space-x-2 justify-center items-start rounded-3xl bg-neutral-800'>
+              <View className='flex-row px-3 py-1 space-x-2 justify-center items-start rounded-3xl bg-neutral-800'>
                 <FontAwesome6 name="flag" size={10} color={'#00ff00'} />
                 <Text style={{ fontSize: 10 }} className="text-neutral-400 ml-1 ">{start}</Text>
               </View>
-              <View className='flex-row px-2 py-1 space-x-2 justify-center items-start bg-neutral-800 rounded-3xl'>
+              <View className='flex-row px-3 py-1 space-x-2 justify-center items-start bg-neutral-800 rounded-3xl'>
                 <FontAwesome6 name="flag-checkered" size={10} color={'#e5e5e5'} />
                 <Text style={{ fontSize: 10 }} className="text-neutral-400 ml-1 ">{end}</Text>
               </View>
-              <View className='flex-row px-2 py-1 justify-center items-center bg-neutral-800 rounded-3xl'>
-                <Text style={{ fontSize: 10 }} className="text-neutral-400 ml-1 ">{workoutFreq} workouts weekly</Text>
+              <View className='flex-row px-3 py-1 space-x-2 justify-center items-center bg-neutral-800 rounded-3xl'>
+                <Ionicons name="card" size={12} color={'#e5e5e5'} />
+                <Text style={{ fontSize: 10 }} className="text-neutral-400 ml-1 ">Verified</Text>
               </View>
               {hasActiveWager ?
                 <View className='flex-row px-3 py-1 justify-center items-center bg-neutral-400 rounded'>
-                  <FontAwesome6 name="edit" size={11} color={'#404040'} />
+                  <FontAwesome6 name="edit" size={12} color={'#404040'} />
                 </View>
                 :
                 <ShimmerButton title={"create wager"} onPress={() => { }} />
@@ -149,138 +148,167 @@ const Wager = () => {
   const { getToken } = useAuth();
   const { user } = useUser();
   const { healthKitAvailable, AppleHealthKit } = useContext(HealthKitContext);
-  const [possible_workout, set_possible_workout] = useState(null);
+  const [workoutUpdateTrigger, setWorkoutUpdateTrigger] = useState(0);
   const [selectedDay, setSelectedDay] = useState(new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
   const [workoutEntries, setWorkoutEntries] = useState([]);
+  const [pushToken, setPushToken] = useState(null);
 
-  function handleHealthData(date: string) {
-    if (healthKitAvailable) {
-      const end_date = new Date(date);
-      end_date.setDate(end_date.getDate() + 1);
-      AppleHealthKit.getSamples(
-        {
-          startDate: date,
-          endDate: end_date.toISOString(),
-          type: 'Workout',
-        },
-        (err, results) => {
-          if (err) {
-            console.log('error', err);
-            return;
+  function handleHealthData(date: string): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      if (healthKitAvailable) {
+        const end_date = new Date(date);
+        end_date.setDate(end_date.getDate() + 1);
+        AppleHealthKit.getSamples(
+          {
+            startDate: date,
+            endDate: end_date.toISOString(),
+            type: 'Workout',
+          },
+          (err, results) => {
+            if (err) {
+              console.log('error', err);
+              reject(err);
+            } else {
+              resolve(results);
+            }
           }
-          if (results.length > 0) {
-            console.log('Workout found', results);
-            set_possible_workout({ start_date: results[0].start_date, end_date: results[0].end_date, calories: results[0].calories, activityName: results[0].activityName });
-          }
-        }
-      );
-    }
+        );
+      } else {
+        resolve([]);
+      }
+    });
   }
 
-  async function updateWagerWithWorkout(today) {
-    console.log('updating workout table with new workout', wager);
+  async function checkAndUpdateWorkouts(today: string, signal?: AbortSignal) {
     const supabase = supabaseClient(await getToken({ template: 'supabase' }));
-
-    const workout_duration_minutes = Math.floor((new Date(possible_workout.end_date).getTime() - new Date(possible_workout.start_date).getTime()) / (1000 * 60));
-    const activity = Activities[possible_workout.activityName]
-    const { error } = await supabase
-      .from('workouts')
-      .insert({ user_id: user.id, wager_id: wager.wager_id, date: today, calories: Math.floor(Number(possible_workout.calories)), type: activity, duration: workout_duration_minutes })
-    if (error) {
-      console.log('error storing new workout', error);
-      throw error;
+    
+    try {
+      const [healthKitWorkouts, dbWorkouts] = await Promise.all([
+        handleHealthData(today),
+        fetchWorkouts(wager.wager_id, today, signal)
+      ]);
+  
+      // ... rest of the function ...
+  
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.log('Error in checkAndUpdateWorkouts:', error);
+      }
     }
-    setWager(prevWager => ({
-      ...prevWager,
-      last_date_completed: today
-    }));
-    const challengeDay = Math.floor((new Date(today).getTime() - new Date(wager.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1;
-
   }
+
+  async function fetchWorkouts(wager_id: string, date: string, signal?: AbortSignal) {
+    const supabase = supabaseClient(await getToken({ template: 'supabase' }));
+  
+    try {
+      const { data, error } = await supabase
+        .from('workouts')
+        .select("*")
+        .eq('wager_id', wager_id)
+        .eq('date', date)
+        .order('date', { ascending: true })
+        .abortSignal(signal);
+  
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Fetch aborted');
+      } else {
+        console.log('Error fetching workouts:', error);
+      }
+      return [];
+    }
+  }
+
+  const debouncedFetchWagerAndWorkouts = debounce((fetchFunction) => {
+    fetchFunction();
+  }, 300); // 300ms delay
 
   useEffect(() => {
     let isSubscribed = true;
+    const abortController = new AbortController();
     setLoading(true);
 
-    const fetchWager = async () => {
+    const fetchWagerAndWorkouts = async () => {
       try {
         console.log('fetching wager');
-        let supabaseAccessToken: string | null = null;
-        try {
-          supabaseAccessToken = await getToken({ template: 'supabase' });
-        } catch (error) {
-          console.error('Error fetching Supabase token:', error);
-          supabaseAccessToken = null;
-        }
-        // Assuming supabaseClient is correctly initialized and can accept the token.
-
+        const supabaseAccessToken = await getToken({ template: 'supabase' });
         const supabase = supabaseClient(supabaseAccessToken);
 
         const { data, error } = await supabase
           .from('wagers')
           .select()
           .eq('user_id', user.id)
-          .eq('status', 'ongoing');
-        if (error) {
-          console.log('error fetching wager data from supabase', error);
-          throw error;
-        }
-        if (isSubscribed) {
+          .eq('status', 'ongoing')
+          .abortSignal(abortController.signal);
+
+        if (error) throw error;
+
+        if (isSubscribed && data.length > 0) {
           const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-          if (data.length > 0) {
-            setHasActiveWager(true);
-            setWager(data[0]);
+          setHasActiveWager(true);
+          setWager(data[0]);
 
-            if (data[0].last_date_completed !== today) {
-              console.log('Looking for workout data for today');
-              handleHealthData(today);
-            }
-          }
-
-          // Get all the workouts for the current wager
-          const { data: workoutData, error: workoutError } = await supabase
-            .from('workouts')
-            .select()
-            .eq('wager_id', data[0].wager_id)
-            .eq('user_id', user.id)
-            .order('date', { ascending: true });
-          if (workoutError) {
-            console.log('Error fetching workouts:', workoutError);
-            return;
-          }
-          setWorkoutEntries(workoutData);
+          console.log('Checking for new workouts');
+          await checkAndUpdateWorkouts(today, abortController.signal);
+        } else {
+          setHasActiveWager(false);
         }
       } catch (error) {
-        console.error('An error occurred while fetching the wager:', error as string);
-        if (isSubscribed) {
-          setLoading(false);
+        if (error.name !== 'AbortError') {
+          console.error('An error occurred while fetching the wager:', error as string);
         }
-        // Handle error state as needed, e.g. show a message to the user
+      } finally {
+        if (isSubscribed) setLoading(false);
       }
-      setLoading(false);
     };
-
+  
     if (user) {
-      fetchWager();
+      debouncedFetchWagerAndWorkouts(fetchWagerAndWorkouts);
     }
-
+  
     return () => {
-      isSubscribed = false; // Clean up subscription on unmount
+      isSubscribed = false;
+      debouncedFetchWagerAndWorkouts.cancel();
     };
-  }, [user, getToken, isFocused, possible_workout]);
+  }, [user, getToken, isFocused, workoutUpdateTrigger]);
+
+
+  async function storePushToken(userId, token) {
+    const supabase = supabaseClient(await getToken({ template: 'supabase' }));
+    const { error } = await supabase
+      .from('profiles')
+      .upsert(
+        { user_id: userId, push_token: token },
+        { onConflict: 'user_id' }
+      );
+  
+    if (error) {
+      console.error('Error storing push token:', error);
+    }
+  }
 
   useEffect(() => {
-    const updateWorkout = async () => {
-      if (possible_workout != null) {
-        const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-        await updateWagerWithWorkout(today);
+    let isSubscribed = true;
+  
+    const setupPushNotifications = async () => {
+      if (user) {
+        const token = await registerForPushNotificationsAsync();
+        if (isSubscribed && token) {
+          setPushToken(token);
+          await storePushToken(user.id, token);
+        }
       }
     };
+  
+    setupPushNotifications();
+  
+    return () => {
+      isSubscribed = false;
+    };
+  }, [user]);
 
-    if (possible_workout != null) {
-      updateWorkout();
-    }
-  }, [possible_workout, getToken, user, wager.wager_id]);
 
   if (loading) {
     return (
@@ -300,12 +328,12 @@ const Wager = () => {
         <View className='flex-col flex-1 w-full justify-center items-center space-y-20'>
           {/* if there is an active wager, show Todays stats: status, pokes, use rest day*/}
           <View className='flex-col w-full h-2/5 justify-center items-center'>
-            <TodayStatus start_date={wager.start_date} selected_day={selectedDay} workouts={workoutEntries}/>
+            <TodayStatus wager_id={wager.wager_id} start_date={wager.start_date} selected_day={selectedDay} workouts={workoutEntries}/>
           </View>
 
           {/* section for overall wager progress. 28 days, 4 check point, 7 days for each check point */}
           <View className='flex-col w-full h-1/3 items-center px-2'>
-            <WagerCalendar last_date_completed={wager.last_date_completed} start_date={wager.start_date} select_day={setSelectedDay} selected_day={selectedDay} workouts={workoutEntries} />
+            <WagerCalendar start_date={wager.start_date} select_day={setSelectedDay} selected_day={selectedDay} workouts={workoutEntries} />
           </View>
         </View>
       </View>

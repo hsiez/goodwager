@@ -123,14 +123,6 @@ const CreateWager = () => {
   };
   const selectedCharity = charities[selectedCharityIndex];
 
-  // State for workout days selection
-  const [workOutDays, setWorkOutDays] = useState(4);
-  const workOutDaysOptions = [
-    { label: "4 Days", value: 4, accessibilityLabel: "switch-4" },
-    { label: "5 Days", value: 5, accessibilityLabel: "switch-5" },
-    { label: "6 Days", value: 6, accessibilityLabel: "switch-6" },
-    { label: "7 Days", value: 7, accessibilityLabel: "switch-7" }
-  ];
   const startDate = new Date(new Date().setHours(0, 0, 0, 0));
   const endDate = new Date(new Date(startDate).getTime());
   endDate.setDate(endDate.getDate() + 21);
@@ -160,7 +152,6 @@ const CreateWager = () => {
           charity_id: selectedCharity.id,
           start_date: startDate.toISOString(),
           end_date: endDate.toISOString(),
-          workout_freq: workOutDays,
           token: 'token',
           status: 'ongoing',
           last_date_completed: null,
@@ -194,6 +185,23 @@ const CreateWager = () => {
     <View style={{backgroundColor: "#090909"}} className='flex w-full h-full justify-between'>
       <View className="flex-col items-center justify-between">
         <View className="flex h-full py-10 justify-between rounded-lg px-5">
+
+          {/* Header */}
+          <Shadow startColor={'#050505'} distance={3} style={{borderRadius: 12}}>
+            <View style={{backgroundColor: "#0D0D0D"}} className="w-full flex-col justify-between items-center border-neutral-800 rounded-xl border p-2 ">
+              <View className='flex-col w-full h-fit items-center space-y-2 justify-center'>
+                <View className="flex-col w-full h-fit px-2">
+                  <Text style={{ fontSize: 14 }} className="text-white text-pretty mb-2">
+                    A goodwager is a streak challenge that requires you to perform at least 60 minutes of exercise every day for 21 days.
+                  </Text>
+                  <Text style={{ fontSize: 14 }} className="text-white text-pretty">
+                    Breaking the streak will trigger an automated donation from your account to a selected charity.
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </Shadow>
+          
           {/* Charity info */}
           <View className="flex-col w-full justify-between items-start">
             <PanGestureHandler onGestureEvent={onGestureEvent} onHandlerStateChange={onHandlerStateChange}>
@@ -217,108 +225,32 @@ const CreateWager = () => {
               onAmountChange={setSelectedAmount} 
             />
           </View>
-            
 
-          {/* Workout days Selection */}
-          <View className="flex-col ">
-            <Text  style={{fontSize: 13}} className="text-white font-semibold mb-3">WORKOUTS PER WEEK</Text>
-            <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 8}}>
-            <View className="flex-row w-full h-fit justify-between items-center">
-              <SwitchSelector
-                options={workOutDaysOptions}
-                initial={0}
-                onPress={value => setWorkOutDays(value)}
-                buttonColor="#e87878"
-                borderColor='rgb(38 38 38)'
-                borderRadius={8}
-                borderWidth={0.5}
-                hasPadding
-                backgroundColor='#0D0D0D'
-                textStyle={{color: 'white'}}
-                height={40}
-              />
+          {/* Dates */}
+          <View className="flex-row w-full justify-between items-center">
+            <View className='flex-col w-14 h-14 space-y-2 justify-center'>
+              <View className='flex w-full items-center'>
+                <FontAwesome6 name="flag" size={20} color={'#e87878'} />
+              </View>
+              <View className='flex w-full h-fit justify-center items-center'>
+                <Text style={{fontSize: 12}} className="text-white">{startDate.toLocaleString('default', { month: 'short' })} {startDate.getDate()}</Text>
+              </View>
             </View>
-            </Shadow>
+
+            {/* slash line connecting two dates */}
+            <View className='flex-1 h-1 items-center justify-center border-2 border-neutral-400 border-dotted'/>
+
+            <View className='flex-col w-14 h-14 items-center space-y-2 justify-center'>
+              <View className='flex w-full items-center'>
+                <FontAwesome6 name="flag-checkered" size={20} color={'#fff'} />
+              </View>
+              <View className='flex w-full h-fit justify-center items-center'>
+                <Text style={{fontSize: 12}} className="text-white">{endDate.toLocaleString('default', { month: 'short' })} {checkpoint3.getDate()}</Text>
+              </View>
+            </View>
           </View>
+
           
-          {/* Timeline */}
-          <View className="flex-col w-full justify-between">
-            <View className='flex-row h-fit w-full space-x-1 mb-2'>
-              <View className='flex-row h-justify-center items-center'>
-                <Text  style={{fontSize: 13}} className="text-white font-semibold">MILESTONES</Text>
-              </View>
-              <Pressable onPress={() => setModalVisible(true)}>
-                <Ionicons name="information-circle-outline" size={23} color={'#3f4548'} />
-              </Pressable>
-            </View>
-            {/* Milestone Info Modal */}
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={modalVisible}
-              onRequestClose={() => setModalVisible(false)}
-            >
-                <View className='flex-1 justify-center items-center'>
-                  <View className='m-5 bg-black bg-opacity-70 rounded-lg p-5 items-center'>
-                    <Pressable className='self-start' onPress={() => setModalVisible(false)}>
-                      <Ionicons name="close" size={30} color={'#fff'} />
-                    </Pressable>
-                    <Text className='text-white text-left mb-4'>
-                      "It takes 21 days to build a habit! goodwager programs 3 checkpoints every 7 days. If you don't match the workout frequency you selected before the checkpoint days are over, your donation will be processed."
-                    </Text>
-                  </View>
-                </View>
-            </Modal>
-
-            <Shadow startColor={'#050505'} distance={3} style={{borderRadius: 12}}>
-              <View style={{backgroundColor: "#0D0D0D"}} className="w-full flex-row justify-between items-center border-neutral-800 rounded-xl border p-2 ">
-                  <View className='flex-col w-14 h-14 space-y-2 justify-center'>
-                    <View className='flex w-full items-center'>
-                      <FontAwesome6 name="flag" size={20} color={'#e87878'} />
-                    </View>
-                    <View className='flex w-full h-fit justify-center items-center'>
-                      <Text style={{fontSize: 12}} className="text-white">{startDate.toLocaleString('default', { month: 'short' })} {startDate.getDate()}</Text>
-                    </View>
-                  </View>
-
-                  <View className='flex-col w-14 h-14 justify-center space-y-2 items-center'>
-                    <View className='flex w-full justify-center items-center'>
-                      <Ionicons name="checkmark-done" size={20} color={'#fff'} />
-                    </View>
-                    <View className='flex w-full h-fit justify-center items-center'>
-                      <Text style={{fontSize: 12}} className="text-white">{checkpoint1.toLocaleString('default', { month: 'short' })} {checkpoint1.getDate()}</Text>
-                    </View>
-                  </View>
-
-                  <View className='flex-col w-14 h-14 justify-center space-y-2 items-center'>
-                    <View className='flex w-full justify-center items-center'>
-                      <Ionicons name="checkmark-done" size={20} color={'#fff'} />
-                    </View>
-                    <View className='flex w-full h-fit justify-center items-center'>
-                      <Text style={{fontSize: 12}} className="text-white">{checkpoint2.toLocaleString('default', { month: 'short' })} {checkpoint2.getDate()}</Text>
-                    </View>
-                  </View>
-
-                  <View className='flex-col w-14 h-14 space-y-2 justify-center  items-center'>
-                    <View className='flex w-full justify-center items-center'>
-                      <Ionicons name="checkmark-done" size={20} color={'#fff'} />
-                    </View>
-                    <View className='flex w-full h-fit justify-center items-center'>
-                      <Text style={{fontSize: 12}} className="text-white">{checkpoint3.toLocaleString('default', { month: 'short' })} {checkpoint3.getDate()}</Text>
-                    </View>
-                  </View>
-
-                  <View className='flex-col w-14 h-14 items-center space-y-2 justify-center'>
-                    <View className='flex w-full items-center'>
-                      <FontAwesome6 name="flag-checkered" size={20} color={'#fff'} />
-                    </View>
-                    <View className='flex w-full h-fit justify-center items-center'>
-                      <Text style={{fontSize: 12}} className="text-white">{checkpoint3.toLocaleString('default', { month: 'short' })} {checkpoint3.getDate()}</Text>
-                    </View>
-                  </View>
-              </View>
-            </Shadow>
-          </View>
           {/* Submit and Cancel Buttons */}
           <View className="flex-row h-11 w-full px-2 justify-center">
             <TouchableOpacity className="flex w-full h-full justify-center bg-neutral-300 rounded-2xl" onPress={handleWagerCreation}>
