@@ -32,7 +32,7 @@ const ShimmerButton = ({ title, onPress }) => {
     <Link href="/wager/create" asChild>
       <TouchableOpacity
         onPress={onPress}
-        className='flex-row px-2 py-1 justify-start items-center rounded-md bg-neutral-500'
+        className='flex-row px-2 py-1 justify-start items-center rounded-md border rounded-md border-neutral-500 bg-neutral-100'
       >
         <Text style={{ fontSize: 10 }} className="text-neutral-950 mr-1 font-semibold">{title}</Text>
         <FontAwesome6 name="edit" size={10} color={'#0a0a0a'} />
@@ -122,10 +122,10 @@ const WagerInfo = ({ latest_wager, hasActiveWager }) => {
               </View>
               <View className='flex-row px-3 py-1 space-x-2 justify-center items-center bg-neutral-800 rounded-3xl'>
                 <Ionicons name="stopwatch" size={12} color={'#e5e5e5'} />
-                <Text style={{ fontSize: 10 }} className="text-neutral-400 ml-1 ">{latest_wager.workout_duration} min</Text>
+                <Text style={{ fontSize: 10 }} className="text-neutral-400 ml-1 ">{latest_wager.workout_duration || 0} min</Text>
               </View>
               {hasActiveWager ?
-                <View className='flex-row px-3 py-1 justify-center items-center bg-neutral-400 rounded'>
+                <View className='flex-row px-3 py-1 justify-center items-center bg-neutral-300 rounded border border-neutral-500 rounded-md'>
                   <FontAwesome6 name="edit" size={12} color={'#404040'} />
                 </View>
                 :
