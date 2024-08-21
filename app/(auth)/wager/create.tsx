@@ -16,7 +16,7 @@ import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
 import * as Localization from 'expo-localization';
 
 
-const WagerAmountStepper = ({ amounts, selectedAmount, onAmountChange }) => {
+const AmountStepper = ({ amounts, selectedAmount, onAmountChange, type }) => {
   const increment = () => {
     const currentIndex = amounts.indexOf(selectedAmount);
     const nextIndex = currentIndex + 1 < amounts.length ? currentIndex + 1 : currentIndex;
@@ -30,9 +30,11 @@ const WagerAmountStepper = ({ amounts, selectedAmount, onAmountChange }) => {
   };
 
   return (
-    <View className="flex-row w-full mt-4 justify-between items-center pb-2">
-      <View className="flex items-center">
-        <Text className="text-4xl text-white text-start">{`$${selectedAmount}`}</Text>
+    <View className="flex-row w-full mt-2 justify-between items-center pb-2">
+      <View className="flex-row items-center">
+        <Text className="text-4xl text-white text-start">{type === "money" ? '$' : ''}</Text>
+        <Text className="text-4xl text-white text-start">{`${selectedAmount}`}</Text>
+        <Text className="text-2xl text-white text-end">{type === "time" ? ' min' : ''}</Text>
       </View>
       <View className="flex-row space-x-1">
         <TouchableOpacity onPress={decrement} className="">
@@ -89,6 +91,10 @@ const CreateWager = () => {
   // State for wager amount
   const [selectedAmount, setSelectedAmount] = useState(20);
   const amounts = [20, 50, 100, 200];
+
+    // State for duration amount
+    const [selectedDuration, setSelectedDuration] = useState(60);
+    const durations = [30, 60, 90];
 
   // State for charity selection
   const charities = [
@@ -152,10 +158,10 @@ const CreateWager = () => {
           charity_id: selectedCharity.id,
           start_date: startDate.toISOString(),
           end_date: endDate.toISOString(),
-          token: 'token',
           status: 'ongoing',
           last_date_completed: null,
-          time_zone: tzone
+          time_zone: tzone,
+          workout_duration: selectedDuration,
         })
     if (error) {
       console.log('error inserting new wager', error);
@@ -195,7 +201,7 @@ const CreateWager = () => {
                     A goodwager is a streak challenge that requires you to perform at least 60 minutes of exercise every day for 21 days.
                   </Text>
                   <Text style={{ fontSize: 14 }} className="text-white text-pretty">
-                    Breaking the streak will trigger an automated donation from your account to a selected charity.
+                    If you failed to complete the challenge, you must donate and show proof of donation to the selected charity.
                   </Text>
                 </View>
               </View>
@@ -203,7 +209,7 @@ const CreateWager = () => {
           </Shadow>
           
           {/* Charity info */}
-          <View className="flex-col w-full justify-between items-start">
+          <View className="flex-col h-fit space-y-4 w-full justify-between items-start">
             <PanGestureHandler onGestureEvent={onGestureEvent} onHandlerStateChange={onHandlerStateChange}>
               <Animated.View
                 style={{ transform: [{ translateX }], }}>
@@ -219,12 +225,27 @@ const CreateWager = () => {
             </PanGestureHandler>
 
             {/* Wager Amount Stepper */}
-            <WagerAmountStepper 
-              amounts={amounts} 
-              selectedAmount={selectedAmount} 
-              onAmountChange={setSelectedAmount} 
-            />
+            <View className="flex-col w-full h-fit items-start">
+              <Text style={{fontSize: 12}} className="text-neutral-600 font-semibold">Pledge Amount </Text>
+              <AmountStepper 
+                amounts={amounts} 
+                selectedAmount={selectedAmount} 
+                onAmountChange={setSelectedAmount} 
+                type="money"
+              />
+            </View>
           </View>
+
+          {/* Duration Amount Stepper */}
+          <View className="flex-col w-full h-fit items-start">
+              <Text style={{fontSize: 12}} className="text-neutral-600 font-semibold">Minimum Workout Duration</Text>
+              <AmountStepper 
+                amounts={durations} 
+                selectedAmount={selectedDuration} 
+                onAmountChange={setSelectedDuration}
+                type="time"
+              />
+            </View>
 
           {/* Dates */}
           <View className="flex-row w-full justify-between items-center">

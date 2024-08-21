@@ -11,6 +11,7 @@ import {Reaction} from 'react-native-reactions';
 
 // Define the FollowerCard component
 const FollowerCard = ({follower}: {follower}) => {
+    const isFocused = useIsFocused();
     const { userId, getToken } = useAuth();
     const {user} = useUser();
     const [followerData, setFollowerData] = useState(null);
@@ -97,7 +98,7 @@ const FollowerCard = ({follower}: {follower}) => {
         };
 
         fetchWagerData();
-    }, [follower.followee, getToken, followerWagerData]);
+    }, [follower.followee, followerWagerData, isFocused ]);
 
     const updateUIBasedOnNotification = (notification) => {
         switch (notification.receiver_status) {
@@ -119,14 +120,14 @@ const FollowerCard = ({follower}: {follower}) => {
     const updateUIBasedOnWagerData = (wagerData) => {
         const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
         setFollowerWagerData(wagerData);
-        const workoutCompleted = wagerData.last_date_completed === today;
+        const workoutCompleted = new Date(wagerData.last_date_completed).toISOString() === today;
         setWorkedOutToday(workoutCompleted);
         setCardText(workoutCompleted ? "Today's Workout is Complete!" : "Today's Workout is Pending");
 
         // Set workout status text and color based on whether the workout was completed today
-        switch (wagerData.last_date_completed === today) {
+        switch (workoutCompleted) {
             case true:
-                setWorkoutStatusText("Completed");
+                setWorkoutStatusText("Complete");
                 setWorkoutStatusColor("#00ff00");
                 break;
             case false:
@@ -287,7 +288,7 @@ const FollowerCard = ({follower}: {follower}) => {
                                             {
                                             followerWagerData.status === 'ongoing' && (
                                                 <View style={{backgroundColor: workoutStatusColor}} className='flex-row px-2 space-x-1 justify-center items-center rounded-3xl'>
-                                                    <Ionicons name="barbell-outline" size={10} color={'#e5e5e5'} />
+                                                    <Ionicons name="barbell" size={12} color={'#0D0D0D'} />
                                                     <Text style={{fontSize: 10}} className="text-xs text-neutral-900"> {workoutStatusText}</Text>
                                                 </View>
                                             )}

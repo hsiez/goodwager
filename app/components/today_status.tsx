@@ -5,12 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import supabaseClient from '../utils/supabase';
 import { useIsFocused } from '@react-navigation/native';
-import Svg, { Defs, RadialGradient, Stop, Circle } from "react-native-svg";
+import Svg, { Defs, RadialGradient, Stop, Circle, Rect, Line } from "react-native-svg";
 import * as SecureStore from 'expo-secure-store';
 import CornerBorder from './corner_border';
+import { Activity_Colors, Activities } from '../utils/activity_map';
 
 
-const TodayStatus = ({ wager_id, start_date, selected_day, workouts }) => {
+const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workouts }) => {
     const { userId, getToken } = useAuth();
     const isFocused = useIsFocused();
     const [challengeDay, setChallengeDay] = useState([0, 0]);
@@ -24,6 +25,8 @@ const TodayStatus = ({ wager_id, start_date, selected_day, workouts }) => {
     const [iconColor, setIconColor] = useState('#e5e5e5');
     const [workoutEntries, setWorkoutEntries] = useState(workouts);
 
+    const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+
     async function fetchNotifications() {
         const supabase = supabaseClient(await getToken({ template: 'supabase' }));
         const { data, error } = await supabase
@@ -36,27 +39,6 @@ const TodayStatus = ({ wager_id, start_date, selected_day, workouts }) => {
             setNotifications(data);
         }
     }
-
-    const NotificationIcon = ({ type }) => {
-        const notifColor = type === "Exercised Today" ? "#00ff00" : "rgb(251 113 133)";
-        const notifIcon = type === "Exercised Today" ? "sparkles-outline" : "barbell-outline";
-        return (
-            <View style={{ borderColor: notifColor }} className='flex justify-center items-center h-6 w-6 border rounded-full'>
-                <Svg height="100%" width="100%">
-                    <Defs>
-                        <RadialGradient id="grad" cx="50%" cy="50%" r="100%" fx="50%" fy="50%">
-                            <Stop offset="32%" stopColor="#0D0D0D" stopOpacity="1" />
-                            <Stop offset="100%" stopColor={notifColor} stopOpacity="1" />
-                        </RadialGradient>
-                    </Defs>
-                    <Circle cx="50%" cy="50%" r="50%" fill="url(#grad)" />
-                    <View className="flex h-full w-full justify-center items-center ">
-                        <Ionicons name={notifIcon as any} size={12} color={notifColor} />
-                    </View>
-                </Svg>
-            </View>
-        );
-    };
 
     useEffect(() => {
         async function pop_day_status() {
@@ -87,7 +69,7 @@ const TodayStatus = ({ wager_id, start_date, selected_day, workouts }) => {
                     setStatusText('Completed');
                     setWorkoutStatus("Complete");
                     setIcon('checkmark-done-circle-outline');
-                    setIconColor('#00ff00');
+                    setIconColor('#0d0d0d');
                 } else {
                     console.log('Workout Goal Not Yet Achieved');
                     setStatusColor('rgb(253 186 116)');
@@ -135,80 +117,132 @@ const TodayStatus = ({ wager_id, start_date, selected_day, workouts }) => {
             
             setWorkoutEntries(workoutData);
         }
-        fetchWorkoutEntries(selected_day);
+        if (wager_status && wager_status != "failed") {
+            fetchWorkoutEntries(selected_day);
+        }
     }, [selected_day]);
-
-    const notif_type = (status) => {
-        if (status === "Exercised Today") {
-            return "kudos";
-        }
-        return "motivation";
-    };
-
-    const notif_caption = (status) => {
-        if (status === "Exercised Today") {
-            return "Nice Work!";
-        }
-        return "Get To It!";
-    };
 
     if (!selected_day) {
         return null;
     }
     console.log('Selected Day:', selected_day);
 
+    const renderProgressBar = () => {
+        console.log("Rendering progress bar. Selected day data:", selectedDayData);
+        console.log("Workout entries:", workoutEntries);
+
+        const uniqueWorkoutTypes = [...new Set(workoutEntries.map(workout => workout.type))];
+        
+        const totalDuration = selectedDayData?.duration || 0;
+        const maxDuration = Math.max(60, totalDuration);
+        const barWidth = 280;
+        const barHeight = 10;
+        const verticalLineHeight = 20; // Height of the vertical line, extending beyond the bar
+
+        let accumulatedWidth = 0;
+        const segments = workoutEntries.map((workout, index) => {
+            const segmentWidth = (workout.duration / maxDuration) * barWidth;
+            const segment = (
+                <Rect
+                    key={index}
+                    x={accumulatedWidth}
+                    y={0}
+                    width={segmentWidth}
+                    height={barHeight}
+                    fill={Activity_Colors[workout.type] || '#404040'}
+                />
+            );
+            accumulatedWidth += segmentWidth;
+            return segment;
+        });
+
+        const sixtyMinuteMark = (60 / maxDuration) * barWidth;
+
+        return (
+            <View className="items-center">
+                <View className="flex-row justify-between mt-1 w-full">
+                    <Text style={{ fontSize: 12 }} className="text-neutral-400">0 mins</Text>
+                    <Text style={{ fontSize: 12 }} className="text-neutral-400">{maxDuration}</Text>
+                </View>
+
+                <Svg width={barWidth} height={verticalLineHeight}>
+                    <Rect
+                        x={0}
+                        y={(verticalLineHeight - barHeight) / 2}
+                        width={barWidth}
+                        height={barHeight}
+                        fill="#2D2D2D"
+                    />
+                    {segments.map(segment => React.cloneElement(segment, {
+                        y: (verticalLineHeight - barHeight) / 2
+                    }))}
+                    <Line
+                        x1={sixtyMinuteMark}
+                        y1={0}
+                        x2={sixtyMinuteMark}
+                        y2={verticalLineHeight}
+                        stroke="#FFFFFF"
+                        strokeWidth="1"
+                        strokeDasharray="4,4"
+                    />
+                </Svg>
+
+                <View className="flex-row flex-wrap min-w-full justify-start items-center mt-2">
+                    {uniqueWorkoutTypes.map((workout, index) => (
+                        <View key={index} className="flex-row w-fit h-fit justify-center items-center space-x-1 mx-1">
+                            <View style={{ backgroundColor: Activity_Colors[workout as string] || '#404040' }} className="h-1.5 w-1.5 rounded-full"></View>
+                            <Text style={{ fontSize: 10 }} className="text-neutral-400">{Activities[workout as string]}</Text>
+                        </View>
+                    ))}
+                </View>
+            </View>
+        );
+    };
+
     return (
         <View className="flex h-full w-full justify-center items-center">
-            <View className='flex w-4/5 rounded-xl justify-center relative'>
+            <View className='flex w-5/6 rounded-xl justify-center relative'>
                 <View className="flex-col min-h-full min-w-full justify-center items-center">
                     <View className="flex-row w-full h-fit justify-start items-center pl-4">
                         <View className="flex w-fit h-fit px-2 py-0.5 justify-center items-center rounded-t-lg bg-neutral-300">
-                            <Text style={{ fontSize: 12 }} className="text-neutral-700 font-semibold">Day: {challengeDay[0]}{challengeDay[1]}</Text>
+                                <View className="flex-row w-fit h-fit justify-center items-center space-x-1 rounded-xl border-0 border-neutral-400">
+                                    <Text style={{ fontSize: 12 }} className="text-neutral-700 font-semibold">{statusText}</Text>
+                                    <Ionicons name={icon} size={14} color={iconColor} />
+                                </View>
                         </View>
                     </View>
                     <View style={{backgroundColor: "#0D0D0D"}} className="flex-col flex-1 h-full w-full bg-neutral-900 rounded-2xl border border-neutral-400">
-                        <View className='flex-col h-full w-full justify-between items-center px-4 py-5'>
-                            <View className="flex-row w-full h-fit justify-between items-center">
-                                <View className="flex-row w-fit h-fit justify-center items-center space-x-1 rounded-xl border-0 border-neutral-400">
-                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 font-semibold">{statusText}</Text>
-                                    <Ionicons name={icon} size={14} color={iconColor} />
-                                </View>
-                            </View>
+                        <View className='flex-col h-full w-full justify-center space-y-4 items-center px-4 pt-3 pb-10'>
                             {/*start_date && workoutStatus === "Complete"*/ true ? (
-                                <View className="flex-row w-full h-fit justify-between items-center px-3">
-                                    <View className="flex-col w-full h-fit justify-center items-center space-y-3">
-                                        <View className='flex-row w-full justify-center items-center'>
-                                            <View className='flex-row flex-1 h-fit justify-start items-center'>
-                                                <Text style={{ fontSize: 14 }} className="text-neutral-400 text-start font-bold rounded-2xl">Type</Text>
+                                <View className="flex-row w-full flex-1 justify-between items-start">
+                                    <View className="flex-col mt-1 w-full h-full items-start">
+                                        {renderProgressBar()}
+                                        <View className="flex-row  flex-1 w-full h-fit justify-between items-center">
+                                            <View className='flex-row w-fit space-x-2 items-center'>
+                                                <View className='flex-row w-fit h-fit justify-start items-center'>
+                                                    <Ionicons name={"stopwatch-outline"} size={18} color={"#a3a3a3"} />
+                                                </View>
+                                                <View className='flex-row fit h-fit justify-start items-center'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 font-medium">{selectedDayData?.duration || "0"} min</Text>
+                                                </View>
                                             </View>
-                                            <View className='flex-row flex-1 h-fit justify-start items-center'>
-                                                <Text style={{ fontSize: 12 }} className="text-neutral-400 text-start font-medium ">{selectedDayData?.types || "Pending"}</Text>
-                                            </View>
-                                        </View>
 
-                                        <View className='flex-row w-full justify-center items-center'>
-                                            <View className='flex-row flex-1 h-fit justify-start items-center'>
-                                                <Text style={{ fontSize: 14 }} className="text-neutral-400 text-start font-bold rounded-2xl">Calories</Text>
+                                            <View className='flex-row w-fit space-x-2 items-center'>
+                                                <View className='flex-row w-fit h-fit justify-start items-center'>
+                                                    <Ionicons name={"flame-outline"} size={18} color={"#a3a3a3"} />
+                                                </View>
+                                                <View className='flex-row w-fit h-fit justify-start items-center'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 font-medium">{selectedDayData?.calories || "0"} cals</Text>
+                                                </View>
                                             </View>
-                                            <View className='flex-row flex-1 h-fit justify-start items-center'>
-                                                <Text style={{ fontSize: 12 }} className="text-neutral-400 font-medium">{selectedDayData?.calories || "0"}</Text>
-                                            </View>
-                                        </View>
-                                        <View className='flex-row w-full justify-center items-center'>
-                                            <View className='flex-row flex-1 h-fit justify-start items-center'>
-                                                <Text style={{ fontSize: 14 }} className="text-neutral-400 text-start font-bold rounded-2xl">Duration</Text>
-                                            </View>
-                                            <View className='flex-row flex-1 h-fit justify-start items-center'>
-                                                <Text style={{ fontSize: 12 }} className="text-neutral-400 text-start font-medium">{selectedDayData?.duration || "0 mins"}</Text>
-                                            </View>
-                                        </View>
-                                        
-                                        <View className='flex-row w-full justify-start items-center'>
-                                            <View className='flex-row flex-1 h-fit justify-start items-center'>
-                                                <Text style={{ fontSize: 14 }} className="text-neutral-400 text-start font-bold">Date</Text>
-                                            </View>
-                                            <View className='flex-row flex-1 h-fit justify-start items-center'>
-                                                <Text style={{ fontSize: 10 }} className="text-neutral-400 font-medium">{new Date(selected_day).toLocaleString('default', { month: 'short', day: 'numeric', year: 'numeric'}) || ""}</Text>
+
+                                            <View className='flex-row w-fit space-x-2 items-center'>
+                                                <View className='flex-row w-fit h-fit justify-start items-center'>
+                                                    <Ionicons name={"calendar-clear-outline"} size={18} color={"#a3a3a3"} />
+                                                </View>
+                                                <View className='flex-row w-fit h-fit justify-start items-center'>
+                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 font-medium">{new Date(selectedDayData?.date || today).toLocaleString('default', { month: 'short', day: "numeric" })}</Text>
+                                                </View>
                                             </View>
                                         </View>
                                     </View>
@@ -277,16 +311,15 @@ const TodayStatus = ({ wager_id, start_date, selected_day, workouts }) => {
                                     <Text style={{ fontSize: 12 }} className="text-neutral-200 ml-2 font-semibold">Friends Motivating You</Text>
                                 </View>
                                 <View style={{ height: '80%', width: '95%' }} className="border border-neutral-800 rounded-2xl">
-                                    <ScrollView className="h-full w-full px-1 pt-1">
+                                    <ScrollView className="h-full w-full px-1 pt-2">
                                         {notifications.map(notification => (
-                                            <View style={{ backgroundColor: "#0D0D0D" }} key={notification.id} className="flex-col w-full h-fit mb-1 justify-between items-center px-2 py-2 space-y-2 border-0.5 rounded-xl border-neutral-700">
-                                                <View className='flex-row w-full h-fit items-start'>
-                                                    <Text style={{ fontSize: 12 }} className="text-neutral-400 ">{notification.sender_un}</Text>
-                                                    <Text style={{ fontSize: 12 }} className="text-neutral-200"> sent {notif_type(notification.receiver_status)}:</Text>
+                                            <View key={notification.id} className="flex-row w-full h-fit mb-1 justify-between items-center  px-2 py-2 space-y-2 rounded-xl border-neutral-700">
+                                                <View className='flex-row w-fit h-fit items-start '>
+                                                    <Text style={{ fontSize: 14 }} className="text-neutral-400 ">{notification.sender_un}</Text>
+                                                    <Text style={{ fontSize: 14 }} className="text-neutral-200"> sent reaction:</Text>
                                                 </View>
-                                                <View className='flex-row w-fit h-fit space-x-2 items-center'>
-                                                    <NotificationIcon type={notification.receiver_status} />
-                                                    <Text style={{ fontSize: 12 }} className="text-neutral-200 text-end">{notif_caption(notification.receiver_status)}</Text>
+                                                <View className='flex-row w-fit h-fit'>
+                                                    <Text style={{ fontSize: 14 }}>{notification.reaction}</Text>
                                                 </View>
                                             </View>
                                         ))}

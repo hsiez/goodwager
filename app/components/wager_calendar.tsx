@@ -20,14 +20,13 @@ type Workout = {
 
 type Workouts = Array<Workout>;
 
-const WagerCalendar = ({ start_date, select_day, selected_day, workouts }: { start_date: Date, select_day: Function, selected_day, workouts: Workouts }) => {
+const WagerCalendar = ({ start_date, select_day, selected_day, last_completed_day }: { start_date: Date, select_day: Function, selected_day, last_completed_day:string }) => {
   const [wagerActive, setWagerActive] = useState((start_date !== null));
   const [wagerTrackerData, setWagerTrackerData] = useState({});
   const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
 
   useEffect(() => {
     async function setUpCalendar() {
-      console.log("workouts", workouts);
       if (start_date !== null) {
         const trackerData = JSON.parse(await SecureStore.getItemAsync("wager_tracker"));
         setWagerTrackerData(trackerData);
@@ -46,7 +45,7 @@ const WagerCalendar = ({ start_date, select_day, selected_day, workouts }: { sta
     }
 
     setUpCalendar();
-  }, [start_date, today, workouts, selected_day]); // Added `workouts` as a dependency
+  }, [start_date, selected_day, last_completed_day]); // Added `workouts` as a dependency
 
   const workoutEntries = Object.entries(wagerTrackerData);
   const week_map = {
@@ -85,25 +84,19 @@ const WagerCalendar = ({ start_date, select_day, selected_day, workouts }: { sta
       } else {
         setBorderInfo("");
       }
-
-      const workoutFound = workouts.some(workout => {
-        if (new Date(workout.date).toISOString() === new Date(date).toISOString()) {
-          setDayCompleted(true);
-          console.log("Day completed", date);
-          setIcon('checkmark-done-circle-outline');
-          setIconColor('#00ff00');
-          return true;
-        }
-        return false;
-      });
-
-      if (workoutFound === false) {
+    
+      if (date <= new Date(last_completed_day).toISOString()) {
+        setDayCompleted(true);
+        setIcon('checkmark-done-circle-outline');
+        setIconColor('#00ff00');
+        console.log("Day completed", date);
+      } else if  ( date > last_completed_day) {
         setDayCompleted(false);
         setIcon('ellipse-outline');
         setIconColor('#e5e5e5');
       }
 
-    }, [selected_day, index, icon]);
+    }, [selected_day, last_completed_day]);
     const handleCellPress = () => {
       select_day(date);
     };

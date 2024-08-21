@@ -21,8 +21,17 @@
       }
     },
     "ios": {
-      "bundleIdentifier": "com.harleysiezar.goodwager"
+      "infoPlist": {
+        "NSHealthShareUsageDescription": "This app requires access to your health data to track your workouts and heart rate.",
+        "NSHealthUpdateUsageDescription": "This app does not write health data."
+      },
+      "entitlements": {
+        "com.apple.developer.healthkit": true
+      },
+      "bundleIdentifier": "com.harleysiezar.goodwager",
+      "buildNumber": "5"
     },
-    "icon": "./assets/images/icon.png"
+    "icon": "./app/assets/images/icon.png",
+    "orientation": "portrait"
   }
 }

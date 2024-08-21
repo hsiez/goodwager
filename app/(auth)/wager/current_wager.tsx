@@ -121,8 +121,8 @@ const WagerInfo = ({ latest_wager, hasActiveWager }) => {
                 <Text style={{ fontSize: 10 }} className="text-neutral-400 ml-1 ">{end}</Text>
               </View>
               <View className='flex-row px-3 py-1 space-x-2 justify-center items-center bg-neutral-800 rounded-3xl'>
-                <Ionicons name="card" size={12} color={'#e5e5e5'} />
-                <Text style={{ fontSize: 10 }} className="text-neutral-400 ml-1 ">Verified</Text>
+                <Ionicons name="stopwatch" size={12} color={'#e5e5e5'} />
+                <Text style={{ fontSize: 10 }} className="text-neutral-400 ml-1 ">{latest_wager.workout_duration} min</Text>
               </View>
               {hasActiveWager ?
                 <View className='flex-row px-3 py-1 justify-center items-center bg-neutral-400 rounded'>
@@ -148,7 +148,6 @@ const Wager = () => {
   const { getToken } = useAuth();
   const { user } = useUser();
   const { healthKitAvailable, AppleHealthKit } = useContext(HealthKitContext);
-  const [workoutUpdateTrigger, setWorkoutUpdateTrigger] = useState(0);
   const [selectedDay, setSelectedDay] = useState(new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
   const [workoutEntries, setWorkoutEntries] = useState([]);
   const [pushToken, setPushToken] = useState(null);
@@ -179,49 +178,8 @@ const Wager = () => {
     });
   }
 
-  async function checkAndUpdateWorkouts(today: string, signal?: AbortSignal) {
-    const supabase = supabaseClient(await getToken({ template: 'supabase' }));
-    
-    try {
-      const [healthKitWorkouts, dbWorkouts] = await Promise.all([
-        handleHealthData(today),
-        fetchWorkouts(wager.wager_id, today, signal)
-      ]);
-  
-      // ... rest of the function ...
-  
-    } catch (error) {
-      if (error.name !== 'AbortError') {
-        console.log('Error in checkAndUpdateWorkouts:', error);
-      }
-    }
-  }
 
-  async function fetchWorkouts(wager_id: string, date: string, signal?: AbortSignal) {
-    const supabase = supabaseClient(await getToken({ template: 'supabase' }));
-  
-    try {
-      const { data, error } = await supabase
-        .from('workouts')
-        .select("*")
-        .eq('wager_id', wager_id)
-        .eq('date', date)
-        .order('date', { ascending: true })
-        .abortSignal(signal);
-  
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        console.log('Fetch aborted');
-      } else {
-        console.log('Error fetching workouts:', error);
-      }
-      return [];
-    }
-  }
-
-  const debouncedFetchWagerAndWorkouts = debounce((fetchFunction) => {
+  const debouncedFetch = debounce((fetchFunction) => {
     fetchFunction();
   }, 300); // 300ms delay
 
@@ -229,35 +187,32 @@ const Wager = () => {
     let isSubscribed = true;
     const abortController = new AbortController();
     setLoading(true);
-
-    const fetchWagerAndWorkouts = async () => {
+  
+    const fetchWager = async () => {
       try {
         console.log('fetching wager');
         const supabaseAccessToken = await getToken({ template: 'supabase' });
         const supabase = supabaseClient(supabaseAccessToken);
-
+  
         const { data, error } = await supabase
           .from('wagers')
           .select()
           .eq('user_id', user.id)
           .eq('status', 'ongoing')
           .abortSignal(abortController.signal);
-
+  
         if (error) throw error;
-
+  
         if (isSubscribed && data.length > 0) {
           const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
           setHasActiveWager(true);
           setWager(data[0]);
-
-          console.log('Checking for new workouts');
-          await checkAndUpdateWorkouts(today, abortController.signal);
         } else {
           setHasActiveWager(false);
         }
       } catch (error) {
         if (error.name !== 'AbortError') {
-          console.error('An error occurred while fetching the wager:', error as string);
+          console.error('An error occurred while fetching the wager:', error);
         }
       } finally {
         if (isSubscribed) setLoading(false);
@@ -265,14 +220,96 @@ const Wager = () => {
     };
   
     if (user) {
-      debouncedFetchWagerAndWorkouts(fetchWagerAndWorkouts);
+      debouncedFetch(fetchWager);
     }
   
     return () => {
       isSubscribed = false;
-      debouncedFetchWagerAndWorkouts.cancel();
+      abortController.abort();
+      debouncedFetch.cancel();
     };
-  }, [user, getToken, isFocused, workoutUpdateTrigger]);
+  }, [user, isFocused, wager.wager_id]);
+
+
+  useEffect(() => {
+    let isSubscribed = true;
+    const abortController = new AbortController();
+  
+    const fetchAndUpdateWorkouts = async () => {
+      if (!wager.wager_id) return;
+  
+      const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+  
+      try {
+        console.log('Fetching and updating workouts');
+        const supabaseAccessToken = await getToken({ template: 'supabase' });
+        const supabase = supabaseClient(supabaseAccessToken);
+  
+        // Fetch workouts from Supabase
+        const { data: supabaseWorkouts, error: supabaseError } = await supabase
+          .from('workouts')
+          .select("*")
+          .eq('wager_id', wager.wager_id)
+          .eq('date', today)
+          .abortSignal(abortController.signal);
+  
+        if (supabaseError) throw supabaseError;
+  
+        // Fetch workouts from HealthKit
+        const healthKitWorkouts = await handleHealthData(today);
+  
+        // Compare and find new workouts
+        const newWorkouts = healthKitWorkouts.filter(hkWorkout => {
+          return !supabaseWorkouts.some(dbWorkout => 
+            dbWorkout.id === hkWorkout.id
+          );
+        });
+  
+        // Insert new workouts into Supabase
+        if (newWorkouts.length > 0) {
+          const { data: insertedWorkouts, error: insertError } = await supabase
+            .from('workouts')
+            .insert(newWorkouts.map(workout => ({
+              id: workout.id,
+              wager_id: wager.wager_id,
+              type: workout.activityName,
+              date: today,
+              user_id: user.id,
+              duration: Math.round((new Date(workout.end).getTime() - new Date(workout.start).getTime()) / (1000 * 60)), // Duration in seconds
+              calories: Math.round(workout.calories || 0)
+            })))
+            .select();
+  
+          if (insertError) throw insertError;
+  
+          // Combine existing and new workouts
+          const allWorkouts = [...supabaseWorkouts, ...insertedWorkouts];
+  
+          // Update local state with all workouts
+          if (isSubscribed) {
+            setWorkoutEntries(allWorkouts);
+          }
+        } else {
+          // If no new workouts, just use the Supabase workouts
+          if (isSubscribed) {
+            setWorkoutEntries(supabaseWorkouts);
+          }
+        }
+  
+      } catch (error) {
+        console.error('Error in fetchAndUpdateWorkouts:', error);
+      }
+    };
+  
+    if (wager.wager_id && user) {
+      fetchAndUpdateWorkouts();
+    }
+  
+    return () => {
+      isSubscribed = false;
+      abortController.abort();
+    };
+  }, [wager.wager_id, user, isFocused]);
 
 
   async function storePushToken(userId, token) {
@@ -328,12 +365,12 @@ const Wager = () => {
         <View className='flex-col flex-1 w-full justify-center items-center space-y-20'>
           {/* if there is an active wager, show Todays stats: status, pokes, use rest day*/}
           <View className='flex-col w-full h-2/5 justify-center items-center'>
-            <TodayStatus wager_id={wager.wager_id} start_date={wager.start_date} selected_day={selectedDay} workouts={workoutEntries}/>
+            <TodayStatus wager_id={wager.wager_id} wager_status={wager.status} start_date={wager.start_date} selected_day={selectedDay} workouts={workoutEntries}/>
           </View>
 
           {/* section for overall wager progress. 28 days, 4 check point, 7 days for each check point */}
           <View className='flex-col w-full h-1/3 items-center px-2'>
-            <WagerCalendar start_date={wager.start_date} select_day={setSelectedDay} selected_day={selectedDay} workouts={workoutEntries} />
+            <WagerCalendar start_date={wager.start_date} select_day={setSelectedDay} selected_day={selectedDay} last_completed_day={wager.last_date_completed} />
           </View>
         </View>
       </View>
