@@ -143,7 +143,7 @@ const WagerInfo = ({ latest_wager, hasActiveWager }) => {
 const Wager = () => {
   const isFocused = useIsFocused();
   const [hasActiveWager, setHasActiveWager] = useState(false);
-  const [wager, setWager] = useState({ wager_id: null, user_id: null, start_date: null, end_date: null, status: null, charity_id: null, amount: 0, last_date_completed: null, streak: 0 });
+  const [wager, setWager] = useState({ wager_id: null, user_id: null, start_date: null, end_date: null, status: null, charity_id: null, amount: 0, last_date_completed: null, workout_duration: 0 });
   const [loading, setLoading] = useState(true);
   const { getToken } = useAuth();
   const { user } = useUser();
@@ -284,6 +284,8 @@ const Wager = () => {
   
           // Combine existing and new workouts
           const allWorkouts = [...supabaseWorkouts, ...insertedWorkouts];
+
+          console.log('All workouts:', allWorkouts);
   
           // Update local state with all workouts
           if (isSubscribed) {
@@ -365,7 +367,7 @@ const Wager = () => {
         <View className='flex-col flex-1 w-full justify-center items-center space-y-20'>
           {/* if there is an active wager, show Todays stats: status, pokes, use rest day*/}
           <View className='flex-col w-full h-2/5 justify-center items-center'>
-            <TodayStatus wager_id={wager.wager_id} wager_status={wager.status} start_date={wager.start_date} selected_day={selectedDay} workouts={workoutEntries}/>
+            <TodayStatus wager_id={wager.wager_id} wager_status={wager.status} start_date={wager.start_date} selected_day={selectedDay} workouts={workoutEntries} workout_duration={wager.workout_duration}/>
           </View>
 
           {/* section for overall wager progress. 28 days, 4 check point, 7 days for each check point */}

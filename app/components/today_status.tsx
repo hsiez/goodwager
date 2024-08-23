@@ -11,7 +11,7 @@ import CornerBorder from './corner_border';
 import { Activity_Colors, Activities } from '../utils/activity_map';
 
 
-const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workouts }) => {
+const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workouts, workout_duration }) => {
     const { userId, getToken } = useAuth();
     const isFocused = useIsFocused();
     const [challengeDay, setChallengeDay] = useState([0, 0]);
@@ -46,9 +46,7 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
                 return;
             }
     
-            const tracker = JSON.parse(await SecureStore.getItemAsync("wager_tracker"));
-            const selectedCache = tracker[selected_day];
-            const Difference_In_Days = selectedCache.challengeDay;
+            const challengeDay = Math.floor((new Date(selected_day).getTime() - new Date(start_date).getTime()) / (1000 * 3600 * 24));
     
             if (workoutEntries.length > 0) {
                 const totalDuration = workoutEntries.reduce((sum, workout) => sum + workout.duration, 0);
@@ -60,7 +58,7 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
                     date: selected_day,
                     types: workoutTypes.join(', '),
                     duration: totalDuration,
-                    challengeDay: Difference_In_Days
+                    challengeDay: challengeDay
                 });
     
                 if (totalDuration >= 60) {
@@ -86,10 +84,10 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
                 setIconColor('rgb(163 163 163)');
             }
     
-            if (Difference_In_Days < 10) {
-                setChallengeDay([0, Difference_In_Days]);
+            if (challengeDay < 10) {
+                setChallengeDay([0, challengeDay]);
             } else {
-                setChallengeDay([Math.floor(Difference_In_Days / 10), Difference_In_Days % 10]);
+                setChallengeDay([Math.floor(challengeDay / 10), challengeDay % 10]);
             }
         }
     
@@ -134,7 +132,7 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
         const uniqueWorkoutTypes = [...new Set(workoutEntries.map(workout => workout.type))];
         
         const totalDuration = selectedDayData?.duration || 0;
-        const maxDuration = Math.max(60, totalDuration);
+        const maxDuration = Math.max(workout_duration, totalDuration);
         const barWidth = 280;
         const barHeight = 10;
         const verticalLineHeight = 20; // Height of the vertical line, extending beyond the bar
@@ -156,10 +154,10 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
             return segment;
         });
 
-        const sixtyMinuteMark = (60 / maxDuration) * barWidth;
+        const sixtyMinuteMark = (workout_duration / maxDuration) * barWidth;
 
         return (
-            <View className="items-center">
+            <View className="flex-1 items-center">
                 <View className="flex-row justify-between mt-1 w-full">
                     <Text style={{ fontSize: 12 }} className="text-neutral-400">0 mins</Text>
                     <Text style={{ fontSize: 12 }} className="text-neutral-400">{maxDuration}</Text>
@@ -189,9 +187,9 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
 
                 <View className="flex-row flex-wrap min-w-full justify-start items-center mt-2">
                     {uniqueWorkoutTypes.map((workout, index) => (
-                        <View key={index} className="flex-row w-fit h-fit justify-center items-center space-x-1 mx-1">
-                            <View style={{ backgroundColor: Activity_Colors[workout as string] || '#404040' }} className="h-1.5 w-1.5 rounded-full"></View>
-                            <Text style={{ fontSize: 10 }} className="text-neutral-400">{Activities[workout as string]}</Text>
+                        <View key={index} className="flex-row w-fit h-fit justify-center items-center space-x-2 mx-1">
+                            <View style={{ backgroundColor: Activity_Colors[workout as string] || '#404040' }} className="h-2 w-2 rounded-full"></View>
+                            <Text style={{ fontSize: 12 }} className="text-neutral-400">{Activities[workout as string]}</Text>
                         </View>
                     ))}
                 </View>
@@ -214,8 +212,8 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
                     <View style={{backgroundColor: "#0D0D0D"}} className="flex-col flex-1 h-full w-full bg-neutral-900 rounded-2xl border border-neutral-400">
                         <View className='flex-col h-full w-full justify-center space-y-4 items-center px-4 pt-3 pb-10'>
                             {/*start_date && workoutStatus === "Complete"*/ true ? (
-                                <View className="flex-row w-full flex-1 justify-between items-start">
-                                    <View className="flex-col mt-1 w-full h-full items-start">
+                                <View className="flex-row w-full flex-1 justify-center items-center">
+                                    <View className="flex-col mt-1 w-full h-full justify-center items-start">
                                         {renderProgressBar()}
                                         <View className="flex-row  flex-1 w-full h-fit justify-between items-center">
                                             <View className='flex-row w-fit space-x-2 items-center'>
@@ -256,83 +254,6 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
                             )}
                         </View>
                     </View>
-                </View>
-                <View className="absolute bottom-1 right-0 flex-row h-fit items-center justify-center">
-                    <Pressable onPress={() => setIsModalVisible(true)} className="flex-row w-1/5 h-4 justify-center items-center">
-                        {notifications.length > 0 ? (
-                            <View className="flex-row w-1/3 h-4 justify-center items-center">
-                            <View className="h-4 w-4 rounded-full border overflow-hidden">
-                                <Image className="h-full w-full" source={require('../assets/images/icon-1.png')} />
-                            </View>
-                            <View 
-                                style={{ marginLeft: -5, borderColor: "#0D0D0D" }} 
-                                className="h-4 w-4 rounded-full border overflow-hidden"
-                            >
-                                <Image className="h-full w-full" source={require('../assets/images/icon-2.png')} />
-                            </View>
-                            <View 
-                                style={{ marginLeft: -5, borderColor: "#0D0D0D" }} 
-                                className="h-4 w-4 rounded-full border overflow-hidden"
-                            >
-                                <Image className="h-full w-full" source={require('../assets/images/icon-3.png')} />
-                            </View>
-                            </View>
-                        ) : null}
-                    </Pressable>
-                    <Modal
-                        animationType="slide"
-                        transparent={true}
-                        visible={isModalVisible}
-                        onRequestClose={() => setIsModalVisible(false)}
-                    >
-                        <View style={{
-                            flex: 1,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            backgroundColor: 'rgba(0, 0, 0, .90)' // Semi-transparent background
-                        }}>
-                            <View style={{
-                                flex: 0,
-                                width: '95%',
-                                height: '50%',
-                                backgroundColor: '#080808',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                borderRadius: 15, // Optional: for rounded corners
-                                shadowColor: "#050505", // Optional: for shadow
-                                shadowOffset: {
-                                    width: 2,
-                                    height: 2
-                                },
-                                shadowOpacity: 0.25,
-                                shadowRadius: 4,
-                            }}>
-                                <View className="flex-row w-full justify-start px-3 pb-2 items-center">
-                                    <Text style={{ fontSize: 12 }} className="text-neutral-200 ml-2 font-semibold">Friends Motivating You</Text>
-                                </View>
-                                <View style={{ height: '80%', width: '95%' }} className="border border-neutral-800 rounded-2xl">
-                                    <ScrollView className="h-full w-full px-1 pt-2">
-                                        {notifications.map(notification => (
-                                            <View key={notification.id} className="flex-row w-full h-fit mb-1 justify-between items-center  px-2 py-2 space-y-2 rounded-xl border-neutral-700">
-                                                <View className='flex-row w-fit h-fit items-start '>
-                                                    <Text style={{ fontSize: 14 }} className="text-neutral-400 ">{notification.sender_un}</Text>
-                                                    <Text style={{ fontSize: 14 }} className="text-neutral-200"> sent reaction:</Text>
-                                                </View>
-                                                <View className='flex-row w-fit h-fit'>
-                                                    <Text style={{ fontSize: 14 }}>{notification.reaction}</Text>
-                                                </View>
-                                            </View>
-                                        ))}
-                                    </ScrollView>
-                                </View>
-                                <View className="flex-row w-full justify-end pr-10 pt-4">
-                                    <Pressable onPress={() => setIsModalVisible(false)}>
-                                        <Text className='text-neutral-200'>Close</Text>
-                                    </Pressable>
-                                </View>
-                            </View>
-                        </View>
-                    </Modal>
                 </View>
             </View>
         </View>

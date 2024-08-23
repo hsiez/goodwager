@@ -27,21 +27,17 @@ const WagerCalendar = ({ start_date, select_day, selected_day, last_completed_da
 
   useEffect(() => {
     async function setUpCalendar() {
-      if (start_date !== null) {
-        const trackerData = JSON.parse(await SecureStore.getItemAsync("wager_tracker"));
-        setWagerTrackerData(trackerData);
-      } else {
-        console.log("Setting up placeholder calendar");
+        console.log("Setting up calendar");
         const workoutDataFlat = {};
         for (let i = 0; i < 21; i++) {
-          const result = new Date(today);
+          const result = new Date(start_date || today);
           result.setDate(result.getDate() + i);
           workoutDataFlat[result.toISOString()] = {
             challengeDay: i + 1,
           };
         }
         setWagerTrackerData(workoutDataFlat);
-      }
+      console.log("last_completed_day", last_completed_day);
     }
 
     setUpCalendar();
@@ -84,13 +80,15 @@ const WagerCalendar = ({ start_date, select_day, selected_day, last_completed_da
       } else {
         setBorderInfo("");
       }
-    
+      
+      console.log("last_completed_dayyyyyy", new Date(last_completed_day).toISOString(), date);
       if (date <= new Date(last_completed_day).toISOString()) {
+        console.log("Day completed", date);
         setDayCompleted(true);
         setIcon('checkmark-done-circle-outline');
         setIconColor('#00ff00');
         console.log("Day completed", date);
-      } else if  ( date > last_completed_day) {
+      } else if  ( date > new Date(last_completed_day).toISOString()) {
         setDayCompleted(false);
         setIcon('ellipse-outline');
         setIconColor('#e5e5e5');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, Pressable } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, Pressable, Modal } from 'react-native';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import supabaseClient from '../utils/supabase';
 import { Shadow } from 'react-native-shadow-2';
@@ -8,6 +8,7 @@ import { fetchUserFromUsername, fetchFollowerWagerData } from '../utils/clerk_ap
 import Svg, { Defs, RadialGradient, Stop, Circle } from "react-native-svg";
 import { useIsFocused } from '@react-navigation/native';
 import {Reaction} from 'react-native-reactions';
+import AddUserModal from '../components/add_user_search';
 
 // Define the FollowerCard component
 const FollowerCard = ({follower}: {follower}) => {
@@ -261,7 +262,7 @@ const FollowerCard = ({follower}: {follower}) => {
     }
     return (
         <View className='flex-1 h-36 w-full mb-4'>
-            <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12, flexDirection: "row", width: '100%', height:"100%" }}>
+            <Shadow startColor={'#050505'} distance={0} style={{borderRadius: 12, flexDirection: "row", width: '100%', height:"100%" }}>
                 <View className="flex-col h-full w-full">
                     <View className="flex-row w-full h-fit justify-start items-center pl-3">
                         <View style={{backgroundColor: wagerStatusColor}} className="flex w-fit h-fit px-4 justify-center items-center rounded-t-lg">
@@ -332,6 +333,22 @@ const FollowersList = () => {
     const [followers, setFollowers] = useState([]);
     const { getToken, userId } = useAuth();
     const [loading, setLoading] = useState(true);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+
+    // Fetch the notifications data
+    async function fetchNotifications() {
+        const supabase = supabaseClient(await getToken({ template: 'supabase' }));
+        const { data, error } = await supabase
+            .from('notifications')
+            .select()
+            .eq('receiver', userId);
+        if (error) {
+            console.error('Error fetching notifications:', error);
+        } else {
+            setNotifications(data);
+        }
+    }
 
     // Fetch the followers data
     useEffect(() => {
@@ -377,6 +394,7 @@ const FollowersList = () => {
 
         if (userId) {
             fetchWager();
+            fetchNotifications();
         }
 
         return () => {
@@ -388,8 +406,72 @@ const FollowersList = () => {
         <View style={{backgroundColor: "#090909"}} className="flex-col h-full justify-center items-center pt-5">
             <View className=" flex-col px-1 w-full h-full justify-center items-center space-y-1 mt-20">
                 {/* screen title */}
-                <View className='flex w-full items-start px-2'>
-                    <Text style={{fontSize: 12}} className="text-neutral-200 font-bold">Motivate your Friends</Text>
+                <View className='flex-row w-full justify-end items-end px-2 pb-2 space-x-4'>
+                    {/* Search button to look up a user and add follow them */}
+                    <View className='flex-row w-fit h-fit justify-center items-center'>
+                        <AddUserModal />
+                    </View>
+
+                    {/* Notification bell button that opens modul to show notifications */}
+                    <View className='flex-row w-fit justify-end items-center'>
+                        <Pressable onPress={() => setIsModalVisible(true)} className="flex-row w-fit h-fit justify-center items-center">
+                            <Ionicons name="notifications" size={20} color="#e5e5e5" />
+                        </Pressable>
+                        <Modal
+                            animationType="slide"
+                            transparent={true}
+                            visible={isModalVisible}
+                            onRequestClose={() => setIsModalVisible(false)}
+                        >
+                            <View style={{
+                                flex: 1,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                backgroundColor: 'rgba(0, 0, 0, .90)' // Semi-transparent background
+                            }}>
+                                <View style={{
+                                    flex: 0,
+                                    width: '95%',
+                                    height: '50%',
+                                    backgroundColor: '#080808',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    borderRadius: 15, // Optional: for rounded corners
+                                    shadowColor: "#050505", // Optional: for shadow
+                                    shadowOffset: {
+                                        width: 2,
+                                        height: 2
+                                    },
+                                    shadowOpacity: 0.25,
+                                    shadowRadius: 4,
+                                }}>
+                                    <View className="flex-row w-full justify-start px-3 pb-2 items-center">
+                                        <Text style={{ fontSize: 12 }} className="text-neutral-200 ml-2 font-semibold">Friends Motivating You</Text>
+                                    </View>
+                                    <View style={{ height: '80%', width: '95%' }} className="border border-neutral-800 rounded-2xl">
+                                        <ScrollView className="h-full w-full px-1 pt-2">
+                                            {notifications.map(notification => (
+                                                <View key={notification.id} className="flex-row w-full h-fit mb-1 justify-between items-center  px-2 py-2 space-y-2 rounded-xl border-neutral-700">
+                                                    <View className='flex-row w-fit h-fit items-start '>
+                                                        <Text style={{ fontSize: 14 }} className="text-neutral-400 ">{notification.sender_un}</Text>
+                                                        <Text style={{ fontSize: 14 }} className="text-neutral-200"> sent reaction:</Text>
+                                                    </View>
+                                                    <View className='flex-row w-fit h-fit'>
+                                                        <Text style={{ fontSize: 14 }}>{notification.reaction}</Text>
+                                                    </View>
+                                                </View>
+                                            ))}
+                                        </ScrollView>
+                                    </View>
+                                    <View className="flex-row w-full justify-end pr-10 pt-4">
+                                        <Pressable onPress={() => setIsModalVisible(false)}>
+                                            <Text className='text-neutral-200'>Close</Text>
+                                        </Pressable>
+                                    </View>
+                                </View>
+                            </View>
+                        </Modal>
+                    </View>
                 </View>
                 <View style={{height:"95%"}} className='flex-row w-full'>
                     <ScrollView 

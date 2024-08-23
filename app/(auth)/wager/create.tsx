@@ -169,18 +169,6 @@ const CreateWager = () => {
       console.log('Wager created');
       await SecureStore.setItemAsync('wager_id', wager_id);
       console.log('Wager ID stored');
-
-      // Create and stort 21 day workout data
-      const wager_tracker = {};
-      for (let i = 0; i < 21; i++) {
-        var result = new Date(startDate);
-        result.setDate(result.getDate() + i);
-        wager_tracker[result.toISOString()] = {
-          challengeDay: i + 1, 
-        };
-      SecureStore.setItemAsync('wager_tracker', JSON.stringify(wager_tracker));
-      console.log('Wager Tracker stored');
-      }
       nav.back();
 
     }
