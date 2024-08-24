@@ -1,5 +1,5 @@
 import SearchBar from './search_bar';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, Text, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -17,9 +17,9 @@ const AddUserModal = () => {
                 transparent={true}
                 visible={modalAddFriendVisible}
                 onRequestClose={() => setModalAddFriendVisible(false)}>
-                <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, .97)'}}>
-                    <View style={{ 
-                        flex: 0,
+                <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, .95)'}}>
+                    <KeyboardAvoidingView  style={{ 
+                        flex: .5,
                         width: '90%',
                         height: '40%',
                         justifyContent: 'center',
@@ -32,16 +32,19 @@ const AddUserModal = () => {
                         },
                         shadowOpacity: 0.25,
                         shadowRadius: 4,
-                    }}>
+
+                    }}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    >
                     <View className="flex-col w-full h-full justify-center items-center space-y-1">
                         <SearchBar />
-                        <View className="flex-row w-full pr-6 h-1/5 justify-end items-center">
-                            <Pressable onPress={() => setModalAddFriendVisible(false)} className='flex-row  justify-center items-center px-2 py-2 bg-neutral-800 rounded-md'>
+                        <View className="flex-row w-full h-1/5 justify-end items-center">
+                            <Pressable onPress={() => setModalAddFriendVisible(false)} className='flex-row  justify-center items-center px-2 py-2 rounded-md'>
                                 <Text style={{fontSize: 12}} className="text-neutral-400 font-semibold">Done</Text>
                             </Pressable>
                         </View>
                     </View>
-                    </View>
+                    </KeyboardAvoidingView >
 
                 </View>
             </Modal>

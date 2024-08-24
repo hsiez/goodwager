@@ -186,13 +186,20 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
                 </Svg>
 
                 <View className="flex-row flex-wrap min-w-full justify-start items-center mt-2">
-                    {uniqueWorkoutTypes.map((workout, index) => (
+                {uniqueWorkoutTypes.length > 0 ? (
+                    uniqueWorkoutTypes.map((workout, index) => (
                         <View key={index} className="flex-row w-fit h-fit justify-center items-center space-x-2 mx-1">
                             <View style={{ backgroundColor: Activity_Colors[workout as string] || '#404040' }} className="h-2 w-2 rounded-full"></View>
                             <Text style={{ fontSize: 12 }} className="text-neutral-400">{Activities[workout as string]}</Text>
                         </View>
-                    ))}
-                </View>
+                    ))
+                ) : (
+                    <View className="flex-row w-fit h-fit justify-center items-center space-x-2 mx-1">
+                        <View style={{ backgroundColor: '#2D2D2D' }} className="h-2 w-2 rounded-full"></View>
+                        <Text style={{ fontSize: 12 }} className="text-neutral-400">No Workout Found</Text>
+                    </View>
+                )}
+            </View>
             </View>
         );
     };

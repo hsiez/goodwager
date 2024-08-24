@@ -61,7 +61,7 @@ const SearchBar = () => {
           placeholderTextColor="rgb(64 64 64)"
           value={searchQuery}
           onChangeText={setSearchQuery}
-          className="flex w-full h-8 bg-neutral-900 text-neutral-300 rounded-md rounded-b-none px-3 py-2"
+          className="flex w-full h-8 bg-neutral-500 text-neutral-300 rounded-xl rounded-b-none px-3 py-2 text-neutral-300"
           returnKeyType="search"
           onSubmitEditing={handleSubmitEditing}
           clearButtonMode="while-editing"
@@ -80,7 +80,7 @@ const SearchBar = () => {
           )}
           keyExtractor={item => item.user_id}
           style={{backgroundColor: '#0D0D0D'}}
-          className='flex-col h-full w-full px-3 border border-t-0 border-neutral-900 rounded-md rounded-t-none'
+          className='flex-col h-full w-full px-3 border-2 border-t-0 border-neutral-500 rounded-2xl rounded-t-none'
         />
       </View>
     </View>
