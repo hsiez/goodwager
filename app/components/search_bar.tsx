@@ -54,32 +54,35 @@ const SearchBar = () => {
   };
 
   return (
-    <View className="flex-col w-full items-center px-3">
-      <TextInput
-        placeholder="Search username..."
-        placeholderTextColor="rgb(64 64 64)"
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        className="flex w-full h-8 bg-neutral-800 text-neutral-300 rounded-full px-3 py-2"
-        returnKeyType="search"
-        onSubmitEditing={handleSubmitEditing}
-        clearButtonMode="while-editing"
-        keyboardAppearance="dark"
-      />
-      <FlatList
-        data={searchResults}
-        renderItem={({ item }) => (
-          <View className='flex-row w-full h-fit py-3 px-1 justify-between items-center'>
-            <View className='flex h-10 w-10 rounded-full p-0.5 border border-neutral-400 justify-center items-center'>
-                <Image source={{uri: item.image_url}} style={{width: "100%", height: "100%", borderRadius: 50}} />
+    <View className="flex-col flex-1 w-full items-center">
+      <View className="flex-col w-full justify-center items-center rounded-lg">
+        <TextInput
+          placeholder="Search username..."
+          placeholderTextColor="rgb(64 64 64)"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          className="flex w-full h-8 bg-neutral-900 text-neutral-300 rounded-md rounded-b-none px-3 py-2"
+          returnKeyType="search"
+          onSubmitEditing={handleSubmitEditing}
+          clearButtonMode="while-editing"
+          keyboardAppearance="dark"
+        />
+        <FlatList
+          data={searchResults}
+          renderItem={({ item }) => (
+            <View className='flex-row w-full h-fit py-3 px-1 justify-between items-center'>
+              <View className='flex h-10 w-10 rounded-full p-0.5 border border-neutral-400 justify-center items-center'>
+                  <Image source={{uri: item.image_url}} style={{width: "100%", height: "100%", borderRadius: 50}} />
+              </View>
+              <Text className='text-neutral-300'>{item.first_name} {item.last_name}</Text>
+              <FollowButton alreadyFollowed={following.has(item.user_id)} handleFollow={() => handleFollow(item.user_id)} />
             </View>
-            <Text className='text-neutral-300'>{item.first_name} {item.last_name}</Text>
-            <FollowButton alreadyFollowed={following.has(item.user_id)} handleFollow={() => handleFollow(item.user_id)} />
-          </View>
-        )}
-        keyExtractor={item => item.user_id}
-        className='flex-col h-3/5 w-full mt-2 px-3 border border-neutral-800 rounded-2xl'
-      />
+          )}
+          keyExtractor={item => item.user_id}
+          style={{backgroundColor: '#0D0D0D'}}
+          className='flex-col h-full w-full px-3 border border-t-0 border-neutral-900 rounded-md rounded-t-none'
+        />
+      </View>
     </View>
   );
 };

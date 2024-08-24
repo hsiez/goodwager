@@ -17,12 +17,11 @@ const AddUserModal = () => {
                 transparent={true}
                 visible={modalAddFriendVisible}
                 onRequestClose={() => setModalAddFriendVisible(false)}>
-                <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, .90)'}}>
+                <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, .97)'}}>
                     <View style={{ 
                         flex: 0,
                         width: '90%',
-                        height: '50%',
-                        backgroundColor: '#0D0D0D',
+                        height: '40%',
                         justifyContent: 'center',
                         alignItems: 'center',
                         borderRadius: 15, // Optional: for rounded corners
@@ -34,12 +33,12 @@ const AddUserModal = () => {
                         shadowOpacity: 0.25,
                         shadowRadius: 4,
                     }}>
-                    <View className="flex-col w-full h-full justify-center items-center space-y-12">
+                    <View className="flex-col w-full h-full justify-center items-center space-y-1">
                         <SearchBar />
-                        <View className="flex-row w-full pr-6 h-fit justify-end items-center">
-                        <Pressable onPress={() => setModalAddFriendVisible(false)} className='flex-row  justify-center items-center'>
-                            <Text style={{fontSize: 12}} className="text-neutral-300 font-semibold">Cancel</Text>
-                        </Pressable>
+                        <View className="flex-row w-full pr-6 h-1/5 justify-end items-center">
+                            <Pressable onPress={() => setModalAddFriendVisible(false)} className='flex-row  justify-center items-center px-2 py-2 bg-neutral-800 rounded-md'>
+                                <Text style={{fontSize: 12}} className="text-neutral-400 font-semibold">Done</Text>
+                            </Pressable>
                         </View>
                     </View>
                     </View>
