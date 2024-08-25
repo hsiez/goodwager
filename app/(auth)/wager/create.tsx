@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Modal, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, Pressable, Modal, TouchableOpacity, Animated, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import SwitchSelector from "react-native-switch-selector";
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
@@ -97,37 +97,9 @@ const CreateWager = () => {
     const durations = [30, 60, 90];
 
   // State for charity selection
-  const charities = [
-    {label: 'Samaritan', value: 'samaritan', url: 'samaritan.city', id: "7d167796-a0ba-49ec-8fd2-48babc2b64c3"},
-    {label: 'Red Cross', value: 'samaritan', url: 'redcross.com', id: "7d167796-a0ba-49ec-8fd2-48babc2b64c3"},
-    {label: 'Doctors w/o Borders', value: 'samaritan', url: 'dwb.org', id: "7d167796-a0ba-49ec-8fd2-48babc2b64c3"},
-  ]
-  const [selectedCharityIndex, setSelectedCharityIndex] = useState(0);
-  const translateX = new Animated.Value(0);
-
-  const onGestureEvent = Animated.event(
-    [{ nativeEvent: { translationX: translateX } }],
-    { useNativeDriver: true }
-  );
-
-  const onHandlerStateChange = event => {
-    if (event.nativeEvent.oldState === State.ACTIVE) {
-      Animated.timing(translateX, {
-        toValue: 0,
-        useNativeDriver: true,
-      }).start();
-
-      // Swipe left (next charity)
-      if (event.nativeEvent.translationX < -50) {
-        setSelectedCharityIndex(prev => (prev + 1) % charities.length);
-      }
-      // Swipe right (previous charity)
-      else if (event.nativeEvent.translationX > 50) {
-        setSelectedCharityIndex(prev => (prev - 1 + charities.length) % charities.length);
-      }
-    }
-  };
-  const selectedCharity = charities[selectedCharityIndex];
+  const [charityEIN, setCharityEIN] = useState('');
+  const [charityName, setCharityName] = useState('');
+  const [charitySubmitted, setCharitySubmitted] = useState(false);
 
   const startDate = new Date(new Date().setHours(0, 0, 0, 0));
   const endDate = new Date(new Date(startDate).getTime());
@@ -155,7 +127,7 @@ const CreateWager = () => {
         { wager_id: wager_id,
           user_id: user.id, 
           amount: selectedAmount,
-          charity_id: selectedCharity.id,
+          charity_id: "selectedCharity.id",
           start_date: startDate.toISOString(),
           end_date: endDate.toISOString(),
           status: 'ongoing',
@@ -175,42 +147,111 @@ const CreateWager = () => {
 
   };
 
+  const submitCharity = async () => {
+    try {
+      setCharitySubmitted(true);
+      Keyboard.dismiss();
+      const response = await fetch(`https://partners.every.org/v0.2/nonprofit/${charityEIN}?apiKey=pk_live_b1d68367f5738c0105230011e50f00b7`);
+      
+      if (response.ok) {
+        console.log('Charity found');
+        const data = await response.json();
+        if (data.data.nonprofit.name) {
+          setCharityName(data.data.nonprofit.name);
+        }
+      } else {
+        // Handle error case
+      }
+    } catch (error) {
+      console.log('Error fetching charity:', error);
+    }
+};
+
   return(
-    <View style={{backgroundColor: "#090909"}} className='flex w-full h-full justify-between'>
-      <View className="flex-col items-center justify-between">
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false} style={{backgroundColor: "#090909"}} className='flex w-full h-full justify-between'>
+      <View style={{backgroundColor: "#090909"}} className="flex-col w-full h-full items-center justify-between">
         <View className="flex h-full py-10 justify-between rounded-lg px-5">
 
           {/* Header */}
-          <Shadow startColor={'#050505'} distance={3} style={{borderRadius: 12}}>
-            <View style={{backgroundColor: "#0D0D0D"}} className="w-full flex-col justify-between items-center border-neutral-800 rounded-xl border p-2 ">
-              <View className='flex-col w-full h-fit items-center space-y-2 justify-center'>
-                <View className="flex-col w-full h-fit px-2">
-                  <Text style={{ fontSize: 14 }} className="text-white text-pretty mb-2">
-                    A goodwager is a streak challenge that requires you to perform at least 60 minutes of exercise every day for 21 days.
-                  </Text>
-                  <Text style={{ fontSize: 14 }} className="text-white text-pretty">
-                    If you failed to complete the challenge, you must donate and show proof of donation to the selected charity.
-                  </Text>
-                </View>
+          <View className="flex-row justify-start items-center space-x-2 mb-1">
+            <Text className="text-white text-2xl font-bold">Create Wager</Text>
+            <TouchableOpacity onPress={() => setModalVisible(true)}>
+              <Ionicons name="information-circle-outline" size={20} color="grey" />
+            </TouchableOpacity>
+          </View>
+
+          <Modal
+            animationType="fade"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => setModalVisible(false)}
+          >
+            <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
+              <View className="bg-neutral-800 p-4 rounded-xl w-4/5">
+                <Text className="text-white text-lg font-bold mb-2">Wager Information</Text>
+                <Text className="text-white mb-2">
+                  A goodwager is a streak challenge that requires you to perform at least 60 minutes of exercise every day for 21 days.
+                </Text>
+                <Text className="text-white mb-4">
+                  If you fail to complete the challenge, you must donate and show proof of donation to the selected charity.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setModalVisible(false)}
+                  className="bg-blue-500 p-2 rounded-lg self-end"
+                >
+                  <Text className="text-white font-bold">Close</Text>
+                </TouchableOpacity>
               </View>
             </View>
-          </Shadow>
+          </Modal>
           
           {/* Charity info */}
           <View className="flex-col h-fit space-y-4 w-full justify-between items-start">
-            <PanGestureHandler onGestureEvent={onGestureEvent} onHandlerStateChange={onHandlerStateChange}>
-              <Animated.View
-                style={{ transform: [{ translateX }], }}>
-                <View className="flex-col w-full justify-between items-start pb-1">
-                  <Text style={{fontSize: 12}} className="text-neutral-600 font-semibold">NONPROFIT</Text>
-                  <Animated.Text className="text-2xl text-white">{selectedCharity.label}</Animated.Text>
-                  <Pressable className="flex-row h-4 items-center space-x-2" onPress={() => Linking.openURL(selectedCharity.url)}>
-                    <Text style={{fontSize: 10}} className=" font-semibold text-rose-500">Learn more</Text>
-                    <Text style={{fontSize: 10}} className="text-neutral-600 font-semibold">{selectedCharity.url}</Text>
-                  </Pressable>
+            <View className="flex-col w-full justify-between items-start pb-1">
+              <Text style={{fontSize: 12}} className="text-neutral-600 font-semibold pb-1">Search Charity</Text>
+              <View className="flex-row w-full items-center space-x-2">
+                <TextInput
+                  className="flex-1 h-10 px-2 text-white bg-neutral-800 rounded"
+                  placeholder="Enter charity EIN"
+                  placeholderTextColor="#999"
+                  value={charityEIN}
+                  onChangeText={(text) => {
+                    const formattedText = text.replace(/[^0-9-]/g, '');
+                    if (formattedText.length <= 10) {
+                      let newText = formattedText;
+                      if (formattedText.length >= 3 && formattedText[2] !== '-') {
+                        newText = formattedText.slice(0, 2) + '-' + formattedText.slice(2);
+                      }
+                      setCharityEIN(newText);
+                    }
+                  }}
+                  maxLength={10}
+                  keyboardType="numeric"
+                  blurOnSubmit={true}
+                  onBlur={() => Keyboard.dismiss()}
+                />
+                <TouchableOpacity onPress={submitCharity} className="bg-blue-500 p-2 rounded">
+                  <Text className="text-white">Submit</Text>
+                </TouchableOpacity>
+              </View>
+              {charitySubmitted && (
+                <View className="flex-row items-center mt-2">
+                  {charityName ? (
+                    <>
+                      <Ionicons name="checkmark-circle" size={20} color="green" />
+                      <View className="flex-row flex-wrap ml-2">
+                        <Text className="text-white">{charityName}</Text>
+                      </View>
+                    </>
+                  ) : (
+                    <>
+                      <Ionicons name="close-circle" size={20} color="red" />
+                      <Text className="ml-2 text-white">Charity not found</Text>
+                    </>
+                  )}
                 </View>
-              </Animated.View>
-            </PanGestureHandler>
+              )}
+            </View>
 
             {/* Wager Amount Stepper */}
             <View className="flex-col w-full h-fit items-start">
@@ -269,7 +310,7 @@ const CreateWager = () => {
          
         </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 

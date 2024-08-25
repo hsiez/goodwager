@@ -143,7 +143,7 @@ const WagerInfo = ({ latest_wager, hasActiveWager }) => {
 const Wager = () => {
   const isFocused = useIsFocused();
   const [hasActiveWager, setHasActiveWager] = useState(false);
-  const [wager, setWager] = useState({ wager_id: null, user_id: null, start_date: null, end_date: null, status: null, charity_id: null, amount: 0, last_date_completed: null, workout_duration: 0 });
+  const [wager, setWager] = useState({ wager_id: null, user_id: null, start_date: null, end_date: null, status: null, charity_id: null, amount: 0, last_date_completed: null, workout_duration: 30 });
   const [loading, setLoading] = useState(true);
   const { getToken } = useAuth();
   const { user } = useUser();
