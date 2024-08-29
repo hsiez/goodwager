@@ -24,12 +24,12 @@ const WagerStack = () => {
             <Stack.Screen
             name="create"
             options={{
-                title: 'Create Wager',
-            headerShown: true,
-            headerStyle: {
-                backgroundColor: "#0D0D0D", // Correct property for background color
-                
-            },
+                title: '',
+                headerShown: true,
+                headerStyle: {
+                    backgroundColor: "#090909", // Correct property for background color
+                },
+                headerBackTitle: 'Cancel',
             }}/>
         </Stack>
     )

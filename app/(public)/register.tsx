@@ -1,131 +1,106 @@
-import { Button, TextInput, View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
-import { useSignUp } from '@clerk/clerk-expo';
-import Spinner from 'react-native-loading-spinner-overlay';
+import { View, KeyboardAvoidingView, Platform, TouchableOpacity, Text, TextInput, Image } from 'react-native';
+import { useOAuth, useSignUp } from '@clerk/clerk-expo';
 import { useState } from 'react';
-import { Stack } from 'expo-router';
-import * as Localization from 'expo-localization';
-import { Shadow } from 'react-native-shadow-2';
+import { Stack, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 const Register = () => {
-  const { isLoaded, signUp, setActive } = useSignUp();
-
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [emailAddress, setEmailAddress] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [pendingVerification, setPendingVerification] = useState(false);
-  const [code, setCode] = useState('');
+  const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+  const { signUp, setActive } = useSignUp();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [username, setUsername] = useState('');
+  const [showUsernameInput, setShowUsernameInput] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // Create the user and send the verification email
-  const onSignUpPress = async () => {
-    if (!isLoaded) {
-      return;
-    }
-    setLoading(true);
-
+  const onPress = async () => {
     try {
-      const tzone = Localization.getCalendars()[0].timeZone;
-      // Create the user on Clerk
-      await signUp.create({
-        username,
-        firstName,
-        lastName,
-        emailAddress,
-        password,
-        unsafeMetadata: { timeZone: tzone }
-      });
+      setLoading(true);
+      const { createdSessionId, signUp } = await startOAuthFlow();
 
-      // Send verification Email
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-
-      // change the UI to verify the email address
-      setPendingVerification(true);
-    } catch (err: any) {
-      console.log(err[0]);
-      alert(err.errors[0].message);
+      if (signUp) {
+        setShowUsernameInput(true);
+      } else if (createdSessionId) {
+        setActive({ session: createdSessionId });
+        router.push("/(auth)/wager");
+      }
+    } catch (err) {
+      console.error("OAuth error", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Verify the email address
-  const onPressVerify = async () => {
-    if (!isLoaded) {
-      return;
-    }
-    setLoading(true);
-
+  const onSubmitUsername = async () => {
+    if (!signUp) return;
     try {
-      console.log('Verifying email address');
-      const completeSignUp = await signUp.attemptEmailAddressVerification({
-        code,
+      setLoading(true);
+      setErrorMessage('');
+      const completeSignUp = await signUp.update({
+        username,
       });
-      console.log('Email address verified');
-
-      await setActive({ session: completeSignUp.createdSessionId });
+      if (completeSignUp.createdSessionId) {
+        setActive({ session: completeSignUp.createdSessionId });
+        router.push("/(auth)/wager");
+      }
     } catch (err: any) {
-      alert(err.errors[0].message);
+      console.error("Error setting username", err);
+      if (err.errors && err.errors[0].message) {
+        setErrorMessage(err.errors[0].message);
+      } else {
+        setErrorMessage("An error occurred while setting the username.");
+      }
     } finally {
       setLoading(false);
-
-
     }
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container}  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <Stack.Screen options={{ headerBackVisible: !pendingVerification }} />
+    <KeyboardAvoidingView 
+      className="flex-1 justify-center p-5 bg-[#090909]"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <Stack.Screen options={{ headerBackVisible: true }} />
 
-      {!pendingVerification && (
-        <>
-          <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
-          <View style={{backgroundColor: "#0D0D0D"}} className='flex-col w-full h-fit px-2 py-4 border border-neutral-800 rounded-2xl'>
-            
-            <View className='flex-row w-full justify-between'>
-              <TextInput className="flew-row w-40 border border-neutral-800 rounded-xl text-neutral-300" autoCapitalize="none" placeholder="first name" placeholderTextColor={"rgb(64 64 64)"} value={firstName} onChangeText={setFirstName} style={styles.inputField} />
-              <TextInput className="flew-row w-40 border border-neutral-800 rounded-xl text-neutral-300" autoCapitalize="none" placeholder="last name" placeholderTextColor={"rgb(64 64 64)"} value={lastName} onChangeText={setLastName} style={styles.inputField} />
-            </View>
-            <TextInput className="border border-neutral-800 rounded-xl text-neutral-300" autoCapitalize="none" placeholder="example@email.com" placeholderTextColor={"rgb(64 64 64)"} value={emailAddress} onChangeText={setEmailAddress} style={styles.inputField} />
-            <TextInput className="border border-neutral-800 rounded-xl text-neutral-300" autoCapitalize="none" placeholder="username" placeholderTextColor={"rgb(64 64 64)"} value={username} onChangeText={setUsername} style={styles.inputField} />
-            <TextInput className="border border-neutral-800 rounded-xl text-neutral-300" placeholder="password" placeholderTextColor={"rgb(64 64 64)"} value={password} onChangeText={setPassword} secureTextEntry style={styles.inputField} />
-          </View>
-          </Shadow>
-
-          <Button onPress={onSignUpPress} title="Sign up" color={"rgb(212 212 212)"}></Button>
-        </>
-      )}
-
-      {pendingVerification && (
-        <>
-          <View>
-            <TextInput className="border border-neutral-800 rounded-xl text-neutral-300" value={code} placeholder="Code..." placeholderTextColor={"rgb(64 64 64)"} style={styles.inputField} onChangeText={setCode} />
-          </View>
-          <Button onPress={onPressVerify} title="Verify Email" color={'rgb(212 212 212)'}></Button>
-        </>
-      )}
+      <View className="w-full items-center">
+        {!showUsernameInput ? (
+          <TouchableOpacity 
+            onPress={onPress} 
+            className="bg-white flex-row items-center justify-center p-3 rounded-full w-full my-2.5 shadow-md space-x-2"
+            disabled={loading}
+          >
+            <Ionicons name="logo-google" size={24} color="#000" />
+            <Text className="text-gray-700 font-medium text-base">
+              {loading ? 'Creating account...' : 'Continue with Google'}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <>
+            {errorMessage ? (
+              <Text className="text-red-500 mb-2.5 text-center w-full">{errorMessage}</Text>
+            ) : null}
+            <TextInput
+              className="bg-[#1A1A1A] text-white w-full p-4 rounded-xl mb-2.5"
+              placeholder="Choose a username"
+              placeholderTextColor="#6B7280"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+            />
+            <TouchableOpacity 
+              onPress={onSubmitUsername} 
+              className="bg-[#4CAF50] p-4 rounded-xl w-full"
+              disabled={loading}
+            >
+              <Text className="text-white text-center font-bold text-base">
+                {loading ? 'Submitting...' : 'Submit Username'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
     </KeyboardAvoidingView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#090909',
-  },
-  inputField: {
-    marginVertical: 4,
-    height: 50,
-    padding: 10,
-    backgroundColor: '#0D0D0D',
-  },
-  button: {
-    margin: 8,
-    alignItems: 'center',
-  },
-});
 
 export default Register;

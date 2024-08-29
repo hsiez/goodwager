@@ -12,7 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as Linking from 'expo-linking';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Shadow } from 'react-native-shadow-2';
-import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
+import Svg, { Defs, RadialGradient, Stop, Rect, Line, Circle } from "react-native-svg";
 import * as Localization from 'expo-localization';
 
 
@@ -32,7 +32,7 @@ const AmountStepper = ({ amounts, selectedAmount, onAmountChange, type }) => {
   return (
     <View className="flex-row w-full mt-2 justify-between items-center pb-2">
       <View className="flex-row items-center">
-        <Text className="text-4xl text-white text-start">{type === "money" ? '$' : ''}</Text>
+        <Text className="text-3xl text-white text-start">{type === "money" ? '$' : ''}</Text>
         <Text className="text-4xl text-white text-start">{`${selectedAmount}`}</Text>
         <Text className="text-2xl text-white text-end">{type === "time" ? ' min' : ''}</Text>
       </View>
@@ -127,7 +127,8 @@ const CreateWager = () => {
         { wager_id: wager_id,
           user_id: user.id, 
           amount: selectedAmount,
-          charity_id: "selectedCharity.id",
+          charity_name: charityName,
+          charity_ein: charityEIN,
           start_date: startDate.toISOString(),
           end_date: endDate.toISOString(),
           status: 'ongoing',
@@ -151,7 +152,7 @@ const CreateWager = () => {
     try {
       setCharitySubmitted(true);
       Keyboard.dismiss();
-      const response = await fetch(`https://partners.every.org/v0.2/nonprofit/${charityEIN}?apiKey=pk_live_b1d68367f5738c0105230011e50f00b7`);
+      const response = await fetch(`https://partners.every.org/v0.2/nonprofit/${charityEIN}?apiKey=${process.env.EVERY_ORG_API_KEY}`);
       
       if (response.ok) {
         console.log('Charity found');
@@ -170,10 +171,10 @@ const CreateWager = () => {
   return(
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false} style={{backgroundColor: "#090909"}} className='flex w-full h-full justify-between'>
       <View style={{backgroundColor: "#090909"}} className="flex-col w-full h-full items-center justify-between">
-        <View className="flex h-full py-10 justify-between rounded-lg px-5">
+        <View className="flex h-full pt-10 pb-5 justify-between rounded-lg px-5">
 
           {/* Header */}
-          <View className="flex-row justify-start items-center space-x-2 mb-1">
+          <View className="flex-row justify-start items-center space-x-2">
             <Text className="text-white text-2xl font-bold">Create Wager</Text>
             <TouchableOpacity onPress={() => setModalVisible(true)}>
               <Ionicons name="information-circle-outline" size={20} color="grey" />
@@ -188,12 +189,16 @@ const CreateWager = () => {
           >
             <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
               <View className="bg-neutral-800 p-4 rounded-xl w-4/5">
-                <Text className="text-white text-lg font-bold mb-2">Wager Information</Text>
+                <Text className="text-white text-lg font-bold mb-2">How it works</Text>
                 <Text className="text-white mb-2">
-                  A goodwager is a streak challenge that requires you to perform at least 60 minutes of exercise every day for 21 days.
+                  goodwager is a streak challenge that requires you to perform exercise every day for 21 days.
                 </Text>
                 <Text className="text-white mb-4">
                   If you fail to complete the challenge, you must donate and show proof of donation to the selected charity.
+                </Text>
+
+                <Text className="text-white mb-4">
+                  goodwager pulls your workout data from the health app. You MUST open the goodwager app every day to log your workout.
                 </Text>
                 <TouchableOpacity
                   onPress={() => setModalVisible(false)}
@@ -207,8 +212,8 @@ const CreateWager = () => {
           
           {/* Charity info */}
           <View className="flex-col h-fit space-y-4 w-full justify-between items-start">
-            <View className="flex-col w-full justify-between items-start pb-1">
-              <Text style={{fontSize: 12}} className="text-neutral-600 font-semibold pb-1">Search Charity</Text>
+            <View className="flex-col w-full justify-between items-start ">
+              <Text style={{fontSize: 12}} className="text-neutral-600 font-semibold pb-2">Search Charity</Text>
               <View className="flex-row w-full items-center space-x-2">
                 <TextInput
                   className="flex-1 h-10 px-2 text-white bg-neutral-800 rounded"
@@ -252,9 +257,10 @@ const CreateWager = () => {
                 </View>
               )}
             </View>
-
-            {/* Wager Amount Stepper */}
-            <View className="flex-col w-full h-fit items-start">
+          </View>
+          
+          {/* Wager Amount Stepper */}
+          <View className="flex-col w-full h-fit items-start">
               <Text style={{fontSize: 12}} className="text-neutral-600 font-semibold">Pledge Amount </Text>
               <AmountStepper 
                 amounts={amounts} 
@@ -262,7 +268,6 @@ const CreateWager = () => {
                 onAmountChange={setSelectedAmount} 
                 type="money"
               />
-            </View>
           </View>
 
           {/* Duration Amount Stepper */}
@@ -274,13 +279,13 @@ const CreateWager = () => {
                 onAmountChange={setSelectedDuration}
                 type="time"
               />
-            </View>
-
+          </View>
+          
           {/* Dates */}
           <View className="flex-row w-full justify-between items-center">
             <View className='flex-col w-14 h-14 space-y-2 justify-center'>
               <View className='flex w-full items-center'>
-                <FontAwesome6 name="flag" size={20} color={'#e87878'} />
+                <FontAwesome6 name="flag" size={20} color={'#00ff00'} />
               </View>
               <View className='flex w-full h-fit justify-center items-center'>
                 <Text style={{fontSize: 12}} className="text-white">{startDate.toLocaleString('default', { month: 'short' })} {startDate.getDate()}</Text>
@@ -288,7 +293,27 @@ const CreateWager = () => {
             </View>
 
             {/* slash line connecting two dates */}
-            <View className='flex-1 h-1 items-center justify-center border-2 border-neutral-400 border-dotted'/>
+            <Svg height="30" width="70%">
+              <Line x1="0" y1="15" x2="100%" y2="15" stroke="#fff" strokeWidth="2" />
+              {[...Array(19)].map((_, index) => (
+                <React.Fragment key={index}>
+                  <Line
+                    x1={`${(index + 1) * 100 / 20}%`}
+                    y1="10"
+                    x2={`${(index + 1) * 100 / 20}%`}
+                    y2="20"
+                    stroke="#fff"
+                    strokeWidth="2"
+                  />
+                  <Circle
+                    cx={`${(index + 1) * 100 / 20}%`}
+                    cy="15"
+                    r="3"
+                    fill="#fff"
+                  />
+                </React.Fragment>
+              ))}
+            </Svg>
 
             <View className='flex-col w-14 h-14 items-center space-y-2 justify-center'>
               <View className='flex w-full items-center'>

@@ -1,82 +1,56 @@
-import { useSignIn } from '@clerk/clerk-expo';
-import { Link } from 'expo-router';
+import { useOAuth } from '@clerk/clerk-expo';
+import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { View, StyleSheet, TextInput, Button, Pressable, Text, KeyboardAvoidingView, Platform } from 'react-native';
-import Spinner from 'react-native-loading-spinner-overlay';
+import { View, TouchableOpacity, Text, KeyboardAvoidingView, Platform } from 'react-native';
 import { Shadow } from 'react-native-shadow-2';
+import { Ionicons } from '@expo/vector-icons';
 
 const Login = () => {
-  const { signIn, setActive, isLoaded } = useSignIn();
-
-  const [emailAddress, setEmailAddress] = useState('');
-  const [password, setPassword] = useState('');
+  const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const onSignInPress = async () => {
-    if (!isLoaded) {
-      return;
-    }
-    setLoading(true);
+  const onPress = async () => {
     try {
-      const completeSignIn = await signIn.create({
-        identifier: emailAddress,
-        password,
-      });
+      setLoading(true);
+      const { createdSessionId, setActive } = await startOAuthFlow();
 
-      // This indicates the user is signed in
-      await setActive({ session: completeSignIn.createdSessionId });
-    } catch (err: any) {
-      alert(err.errors[0].message);
+      if (createdSessionId) {
+        setActive({ session: createdSessionId });
+        router.push("/(auth)/wager");
+      }
+    } catch (err) {
+      console.error("OAuth error", err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View className='flex-col w-full justify-center items-center'>
-        <View className='mb-2'>
-          <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
-          <TextInput className='flex-row w-80 border border-neutral-800 rounded-xl text-neutral-300' autoCapitalize="none" placeholder="simon@galaxies.dev" value={emailAddress} onChangeText={setEmailAddress} style={styles.inputField} />
-          </Shadow>
+    <View 
+      className="flex-1 justify-center p-5 bg-[#090909]"
+    >
+      <View className="flex-col w-full justify-center items-center">
+        <View className="rounded-xl w-full mb-2">
+          <TouchableOpacity 
+            onPress={onPress} 
+            className="bg-white flex-row items-center justify-center p-3 rounded-full w-full my-2.5 shadow-md space-x-2"
+            disabled={loading}
+          >
+            <Ionicons name="logo-google" size={24} color="#000" />
+            <Text className="text-gray-700 font-medium text-base">
+              {loading ? 'Signing in...' : 'Sign in with Google'}
+            </Text>
+          </TouchableOpacity>
         </View>
-        <Shadow startColor={'#050505'} distance={4} style={{borderRadius: 12}}>
-        <TextInput className='flex-row w-80 border border-neutral-800 rounded-xl text-neutral-300' placeholder="password" value={password} onChangeText={setPassword} secureTextEntry  style={styles.inputField} />
-        </Shadow>
       </View>
-      <Button onPress={onSignInPress} title="Login" color={"rgb(212 212 212)"}></Button>
-
-      <Link href="/reset" asChild>
-        <Pressable style={styles.button}>
-          <Text className='text-neutral-700'>Forgot password?</Text>
-        </Pressable>
-      </Link>
       <Link href="/register" asChild>
-        <Pressable style={styles.button}>
-          <Text className='text-neutral-700'>Create Account</Text>
-        </Pressable>
+        <TouchableOpacity className="items-center">
+          <Text className="text-neutral-700">Create Account</Text>
+        </TouchableOpacity>
       </Link>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#090909',
-  },
-  inputField: {
-    flexDirection: 'row',
-    height: 50,
-    padding: 10,
-    backgroundColor: '#0D0D0D',
-  },
-  button: {
-    margin: 8,
-    alignItems: 'center',
-  },
-});
 
 export default Login;

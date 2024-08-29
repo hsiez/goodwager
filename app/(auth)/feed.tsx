@@ -474,17 +474,22 @@ const FollowersList = () => {
                     </View>
                 </View>
                 <View style={{height:"95%"}} className='flex-row w-full'>
-                    <ScrollView 
-                        showsVerticalScrollIndicator={false} 
-                        contentContainerStyle={{alignItems: 'center', paddingBottom:5}} 
-                        className='pb-0.5 py-1 w-full'
-                        style={{minWidth: '100%', height:"100%", paddingHorizontal: 6}} // Set a minimum width to maintain full size
-                    >
-                        
-                        {followers.map((follower) => (
-                        <FollowerCard key={follower.followee_un} follower={follower} />
-                        ))}
-                    </ScrollView>
+                    {followers.length === 0 ? (
+                        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                            <Text className="text-neutral-700" style={{fontSize: 18}}>No Friends Yet</Text>
+                        </View>
+                    ) : (
+                        <ScrollView 
+                            showsVerticalScrollIndicator={false} 
+                            contentContainerStyle={{alignItems: 'center', paddingBottom:50}} 
+                            className='pb-0.5 py-1 w-full'
+                            style={{minWidth: '100%', height:"100%", paddingHorizontal: 6}}
+                        >
+                            {followers.map((follower) => (
+                                <FollowerCard key={follower.followee_un} follower={follower} />
+                            ))}
+                        </ScrollView>
+                    )}
                 </View>
             </View>
         </View>

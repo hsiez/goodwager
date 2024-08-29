@@ -6,14 +6,11 @@ import TodayStatus from '../../components/today_status';
 import WagerCalendar from '../../components/wager_calendar';
 import { Link } from "expo-router";
 import supabaseClient from '../../utils/supabase';
-import charity_map from '../../utils/charity_map';
-import { Shadow } from 'react-native-shadow-2';
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
 import HealthKitContext from '../../components/HealthkitContext';
 import LinearGradient from 'react-native-linear-gradient';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import { Activities } from '../../utils/activity_map';
 import { debounce } from 'lodash';
 import registerForPushNotificationsAsync  from '../../utils/push_token';
 
@@ -95,14 +92,14 @@ const WagerInfo = ({ latest_wager, hasActiveWager }) => {
     <View className='flex w-full items-center'>
       <View style={{ height: 103 }} className="flex w-full justify-center items-center mt-10">
         <View className='flex-col min-w-full px-3 rounded-2xl justify-center items-center space-y-6 '>
-          <View className="flex-row pl-0.5 w-full justify-start items-center mt-1 space-x-2 ">
+          <View className="flex-row w-full justify-start items-center mt-1 space-x-2 ">
             <View className='rounded'>
               <Text className="text-3xl text-neutral-700">${amount}</Text>
             </View>
             <Ionicons name="arrow-forward-outline" size={20} color="#404040" />
             {hasActiveWager ?
-              <View className=''>
-                <Text className="text-2xl text-neutral-700">{charity_map[latest_wager.charity_id].name}</Text>
+              <View className='flex-row justify-center items-center'>
+                <Text numberOfLines={1} ellipsizeMode='tail' className="text-2xl text-neutral-700 max-w-[150px]">{latest_wager.charity_name}</Text>
               </View>
               :
               <View className='px-2 border-dashed border border-neutral-800 rounded-xl'>
@@ -125,8 +122,8 @@ const WagerInfo = ({ latest_wager, hasActiveWager }) => {
                 <Text style={{ fontSize: 10 }} className="text-neutral-400 ml-1 ">{latest_wager.workout_duration || 0} min</Text>
               </View>
               {hasActiveWager ?
-                <View className='flex-row px-3 py-1 justify-center items-center bg-neutral-300 rounded border border-neutral-500 rounded-md'>
-                  <FontAwesome6 name="edit" size={12} color={'#404040'} />
+                <View className='flex-row justify-center items-center bg-neutral-300 rounded border-0 border-neutral-500 rounded-md'>
+                  <Ionicons name="create-outline" size={36} color={'#404040'} />
                 </View>
                 :
                 <ShimmerButton title={"create wager"} onPress={() => { }} />
@@ -143,7 +140,7 @@ const WagerInfo = ({ latest_wager, hasActiveWager }) => {
 const Wager = () => {
   const isFocused = useIsFocused();
   const [hasActiveWager, setHasActiveWager] = useState(false);
-  const [wager, setWager] = useState({ wager_id: null, user_id: null, start_date: null, end_date: null, status: null, charity_id: null, amount: 0, last_date_completed: null, workout_duration: 30 });
+  const [wager, setWager] = useState({ wager_id: null, user_id: null, start_date: null, end_date: null, status: null, charity_id: null, amount: 0, last_date_completed: null, workout_duration: 30, charity_name: null, charity_ein: null});
   const [loading, setLoading] = useState(true);
   const { getToken } = useAuth();
   const { user } = useUser();
@@ -361,7 +358,7 @@ const Wager = () => {
     <View style={{ backgroundColor: "#090909" }} className="flex-col h-full items-center ">
       <View className='flex-col flex-1 w-full h-full justify-start items-center space-y-5'>
         {/* If there is an active wager, show the wager info */}
-        <View className='flex-col flex-none w-full h-1/4 justify-center items-center bg-neutral-300'>
+        <View className='flex-col flex-none w-full h-1/4 justify-center items-center bg-neutral-950 border-b-4 border-green-500'>
           <WagerInfo latest_wager={wager} hasActiveWager={hasActiveWager} />
         </View>
         <View className='flex-col flex-1 w-full justify-center items-center space-y-20'>

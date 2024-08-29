@@ -181,16 +181,22 @@ const Profile = () => {
     return (
       <View className='flex-row w-full h-3/5 justify-center items-center'>
         <Shadow startColor={'#050505'} distance={2} style={{borderRadius:12}}>
-          <ScrollView 
-            showsVerticalScrollIndicator={false} 
-            contentContainerStyle={{alignItems: 'center', paddingBottom:5}} 
-            className='flex-1 pb-0.5 px-1 w-full h-full border rounded-xl border-neutral-800'
-            style={{minWidth: '100%', backgroundColor: '#0D0D0D'}} // Set a minimum width to maintain full size
-          >
-            {followers.map((follower) => (
-                  <FriendItem key={follower.followee} friend={follower} onDelete={onDelete} />
-                ))}
-        </ScrollView>
+          {followers.length === 0 ? (
+            <View style={{minWidth: '100%', backgroundColor: '#0D0D0D'}} className='flex-1 justify-center items-center border rounded-xl border-neutral-800'>
+              <Text className="text-neutral-400">No Friends Yet...</Text>
+            </View>
+          ) : (
+            <ScrollView 
+              showsVerticalScrollIndicator={false} 
+              contentContainerStyle={{alignItems: 'center', paddingBottom:5}} 
+              className='flex-1 pb-0.5 px-1 w-full h-full border rounded-xl border-neutral-800'
+              style={{minWidth: '100%', backgroundColor: '#0D0D0D'}}
+            >
+              {followers.map((follower) => (
+                <FriendItem key={follower.followee} friend={follower} onDelete={onDelete} />
+              ))}
+            </ScrollView>
+          )}
         </Shadow>
       </View>
     );
@@ -218,9 +224,9 @@ const Profile = () => {
               </View>
             </View>
             {/* Sign out */}
-            <View className="flex-row h-full w-fit p-2 justify-center items-start ">
-              <Pressable onPress={() => {signOut()}}>
-                <Ionicons name="log-out-outline" size={24} color={'rgb(115 115 115)'} />
+            <View className="flex-col flex-1 justify-center items-end">
+              <Pressable className="flex justify-center items-center h-11 w-11" onPress={() => {signOut()}}>
+                <Ionicons name="log-out-outline" size={36} color={'rgb(115 115 115)'} />
               </Pressable>
             </View>
           </View>
