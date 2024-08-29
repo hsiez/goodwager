@@ -61,13 +61,13 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
                     challengeDay: challengeDay
                 });
     
-                if (totalDuration >= 60) {
+                if (totalDuration >= workout_duration) {
                     console.log('Workout Goal Achieved');
                     setStatusColor('#71BC78');
                     setStatusText('Completed');
                     setWorkoutStatus("Complete");
                     setIcon('checkmark-done-circle-outline');
-                    setIconColor('#0d0d0d');
+                    setIconColor('#d4d4d4');
                 } else {
                     console.log('Workout Goal Not Yet Achieved');
                     setStatusColor('rgb(253 186 116)');
@@ -209,14 +209,14 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
             <View className='flex w-5/6 rounded-xl justify-center relative'>
                 <View className="flex-col min-h-full min-w-full justify-center items-center">
                     <View className="flex-row w-full h-fit justify-start items-center pl-4">
-                        <View className="flex w-fit h-fit px-2 py-0.5 justify-center items-center rounded-t-lg bg-neutral-300">
-                                <View className="flex-row w-fit h-fit justify-center items-center space-x-1 rounded-xl border-0 border-neutral-400">
-                                    <Text style={{ fontSize: 12 }} className="text-neutral-700 font-semibold">{statusText}</Text>
+                        <View className="flex w-fit h-fit px-2 py-0.5 justify-center items-center rounded-t-lg bg-neutral-700">
+                                <View className="flex-row w-fit h-fit justify-center items-center space-x-1 rounded-xl border-0 border-neutral-800">
+                                    <Text style={{ fontSize: 12 }} className="text-neutral-300 font-semibold">{statusText}</Text>
                                     <Ionicons name={icon} size={14} color={iconColor} />
                                 </View>
                         </View>
                     </View>
-                    <View style={{backgroundColor: "#0D0D0D"}} className="flex-col flex-1 h-full w-full bg-neutral-900 rounded-2xl border border-neutral-400">
+                    <View style={{backgroundColor: "#0D0D0D"}} className="flex-col flex-1 h-full w-full bg-neutral-900 rounded-2xl border-2 border-neutral-600">
                         <View className='flex-col h-full w-full justify-center space-y-4 items-center px-4 pt-3 pb-10'>
                             {/*start_date && workoutStatus === "Complete"*/ true ? (
                                 <View className="flex-row w-full flex-1 justify-center items-center">

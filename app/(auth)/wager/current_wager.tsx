@@ -90,45 +90,39 @@ const WagerInfo = ({ latest_wager, hasActiveWager }) => {
 
   return (
     <View className='flex w-full items-center'>
-      <View style={{ height: 103 }} className="flex w-full justify-center items-center mt-10">
-        <View className='flex-col min-w-full px-3 rounded-2xl justify-center items-center space-y-6 '>
-          <View className="flex-row w-full justify-start items-center mt-1 space-x-2 ">
-            <View className='rounded'>
-              <Text className="text-3xl text-neutral-700">${amount}</Text>
-            </View>
-            <Ionicons name="arrow-forward-outline" size={20} color="#404040" />
-            {hasActiveWager ?
-              <View className='flex-row justify-center items-center'>
-                <Text numberOfLines={1} ellipsizeMode='tail' className="text-2xl text-neutral-700 max-w-[150px]">{latest_wager.charity_name}</Text>
-              </View>
-              :
-              <View className='px-2 border-dashed border border-neutral-800 rounded-xl'>
-                <Text className="text-2xl text-neutral-800">your fav charity</Text>
-              </View>
-            }
+      <View style={{ height: 103 }} className="flex-row w-full justify-between items-center mt-10 px-4">
+        {/* Left half */}
+        <View className='flex-col justify-center items-start w-1/2 space-y-1'>
+          <Text style={{ fontSize: 16 }} className="text-neutral-600 font-medium">On the Line</Text>
+          <View className='flex-row items-center'>
+            <Text className="text-3xl text-neutral-400">$</Text>
+            <Text className="text-3xl text-neutral-400">{amount}</Text>
           </View>
-          <View className="flex-row w-full space-x-2 mb-2 justify-center items-center">
-            <View className='flex-row w-full justify-between items-center' >
-              <View className='flex-row px-3 py-1 space-x-2 justify-center items-start rounded-3xl bg-neutral-800'>
-                <FontAwesome6 name="flag" size={10} color={'#00ff00'} />
-                <Text style={{ fontSize: 10 }} className="text-neutral-400 ml-1 ">{start}</Text>
-              </View>
-              <View className='flex-row px-3 py-1 space-x-2 justify-center items-start bg-neutral-800 rounded-3xl'>
-                <FontAwesome6 name="flag-checkered" size={10} color={'#e5e5e5'} />
-                <Text style={{ fontSize: 10 }} className="text-neutral-400 ml-1 ">{end}</Text>
-              </View>
-              <View className='flex-row px-3 py-1 space-x-2 justify-center items-center bg-neutral-800 rounded-3xl'>
-                <Ionicons name="stopwatch" size={12} color={'#e5e5e5'} />
-                <Text style={{ fontSize: 10 }} className="text-neutral-400 ml-1 ">{latest_wager.workout_duration || 0} min</Text>
-              </View>
-              {hasActiveWager ?
-                <View className='flex-row justify-center items-center bg-neutral-300 rounded border-0 border-neutral-500 rounded-md'>
-                  <Ionicons name="create-outline" size={36} color={'#404040'} />
-                </View>
-                :
-                <ShimmerButton title={"create wager"} onPress={() => { }} />
-              }
+          {hasActiveWager ? (
+            <View className='flex-row items-center space-x-1'>
+              <Text style={{ fontSize: 16 }} className="text-neutral-600 font-medium">To:</Text>
+              <Text numberOfLines={1} ellipsizeMode='tail' style={{ fontSize: 16 }} className=" text-neutral-400 max-w-[180px]">{latest_wager.charity_name}</Text>
             </View>
+          ) : (
+            <View className='px-2 border-dashed border border-neutral-800 rounded-xl'>
+              <Text className="text-xl text-neutral-800">your fav charity</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Right half */}
+        <View className='flex-col space-y-1 w-1/2 items-end'>
+          <View className='flex-row px-3 py-1 space-x-2 justify-center items-center rounded-md bg-neutral-900'>
+            <FontAwesome6 name="flag" size={10} color={'#00ff00'} />
+            <Text style={{ fontSize: 12 }} className="text-neutral-400 font-medium ml-1">{start}</Text>
+          </View>
+          <View className='flex-row px-3 py-1 space-x-2 justify-center items-center bg-neutral-900 rounded-md'>
+            <FontAwesome6 name="flag-checkered" size={10} color={'#e5e5e5'} />
+            <Text style={{ fontSize: 12 }} className="text-neutral-400 font-medium ml-1">{end}</Text>
+          </View>
+          <View className='flex-row px-3 py-1 space-x-2 justify-center items-center bg-neutral-900 rounded-md'>
+            <Ionicons name="stopwatch-outline" size={14} color={'#e5e5e5'} />
+            <Text style={{ fontSize: 12 }} className="text-neutral-400 font-medium ml-1">{latest_wager.workout_duration || 0} min</Text>
           </View>
         </View>
       </View>
@@ -358,7 +352,7 @@ const Wager = () => {
     <View style={{ backgroundColor: "#090909" }} className="flex-col h-full items-center ">
       <View className='flex-col flex-1 w-full h-full justify-start items-center space-y-5'>
         {/* If there is an active wager, show the wager info */}
-        <View className='flex-col flex-none w-full h-1/4 justify-center items-center bg-neutral-950 border-b-4 border-green-500'>
+        <View className='flex-col flex-none w-full h-1/4 justify-center items-center border-b-2 border-neutral-900 bg-neutral-950'>
           <WagerInfo latest_wager={wager} hasActiveWager={hasActiveWager} />
         </View>
         <View className='flex-col flex-1 w-full justify-center items-center space-y-20'>
