@@ -13,7 +13,6 @@ import { fetchUserFromUsername } from '../utils/clerk_apis';
 import Wager from './wager/current_wager';
 import { useIsFocused } from '@react-navigation/native';
 
-
 const Profile = () => {
   const { user } = useUser();
   const { signOut, getToken, userId } = useAuth();
@@ -26,6 +25,7 @@ const Profile = () => {
   const [modalUnfriendVisible, setModalUnfriendVisible] = useState(false);
   const [modalAddFriendVisible, setModalAddFriendVisible] = useState(false);
   const [selecteUser, setSelectedUser] = useState(null);
+  const [isSignOutModalVisible, setIsSignOutModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -202,6 +202,15 @@ const Profile = () => {
     );
   };
 
+  const handleSignOut = () => {
+    setIsSignOutModalVisible(true);
+  };
+
+  const confirmSignOut = () => {
+    setIsSignOutModalVisible(false);
+    signOut();
+  };
+
   return (
     <View style={{backgroundColor: "#090909"}} className='w-full h-full flex-col justify-between items-center px-4 pt-24 '>
       <View className="flex-col h-1/3 w-full justify-start items-start ">
@@ -225,7 +234,7 @@ const Profile = () => {
             </View>
             {/* Sign out */}
             <View className="flex-col flex-1 justify-center items-end">
-              <Pressable className="flex justify-center items-center h-11 w-11" onPress={() => {signOut()}}>
+              <Pressable className="flex justify-center items-center h-11 w-11" onPress={handleSignOut}>
                 <Ionicons name="log-out-outline" size={36} color={'rgb(115 115 115)'} />
               </Pressable>
             </View>
@@ -263,6 +272,34 @@ const Profile = () => {
           </View>
           <FriendList />
       </View>
+
+      {/* Sign out confirmation modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isSignOutModalVisible}
+        onRequestClose={() => setIsSignOutModalVisible(false)}
+      >
+        <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
+          <View className="bg-neutral-800 p-5 rounded-xl w-4/5 max-w-sm">
+            <Text className="text-white text-lg mb-4 text-center">Are you sure you want to sign out?</Text>
+            <View className="flex-row justify-around">
+              <Pressable 
+                className="bg-neutral-600 px-4 py-2 rounded-lg"
+                onPress={() => setIsSignOutModalVisible(false)}
+              >
+                <Text className="text-white">Cancel</Text>
+              </Pressable>
+              <Pressable 
+                className="bg-red-600 px-4 py-2 rounded-lg"
+                onPress={confirmSignOut}
+              >
+                <Text className="text-white">Sign Out</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

@@ -31,6 +31,18 @@ const WagerStack = () => {
                 },
                 headerBackTitle: 'Cancel',
             }}/>
+
+            <Stack.Screen
+            name="donation_proof"
+            options={{
+                headerShown: true,
+
+                title: '',
+                headerStyle: {
+                    backgroundColor: "#090909", // Correct property for background color
+                },
+                headerBackTitle: 'Cancel',
+            }}/>
         </Stack>
     )
 

@@ -20,8 +20,8 @@ type Workout = {
 
 type Workouts = Array<Workout>;
 
-const WagerCalendar = ({ start_date, select_day, selected_day, last_completed_day }: { start_date: Date, select_day: Function, selected_day, last_completed_day:string }) => {
-  const [wagerActive, setWagerActive] = useState((start_date !== null));
+const WagerCalendar = ({ start_date, select_day, selected_day, last_completed_day, wager_status }: { start_date: Date, select_day: Function, selected_day, last_completed_day:string, wager_status: string  }) => {
+  const [wagerActive, setWagerActive] = useState( wager_status !== "failed");
   const [wagerTrackerData, setWagerTrackerData] = useState({});
   const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
 
@@ -68,7 +68,7 @@ const WagerCalendar = ({ start_date, select_day, selected_day, last_completed_da
         setWorkoutDay([Math.floor(data.challengeDay / 10), data.challengeDay % 10]);
       }
 
-      if (date > today || start_date === null) {
+      if (date > today || wagerActive === false) {
         return;
       }
       if (date <= today) {
@@ -82,19 +82,21 @@ const WagerCalendar = ({ start_date, select_day, selected_day, last_completed_da
       }
       
       console.log("last_completed_dayyyyyy", new Date(last_completed_day).toISOString(), date);
-      if (date <= new Date(last_completed_day).toISOString()) {
-        console.log("Day completed", date);
-        setDayCompleted(true);
-        setIcon('checkmark-done-circle-outline');
-        setIconColor('#00ff00');
-        console.log("Day completed", date);
-      } else if  ( date > new Date(last_completed_day).toISOString()) {
-        setDayCompleted(false);
-        setIcon('ellipse-outline');
-        setIconColor('#e5e5e5');
+      if (wagerActive) {
+        if (date <= new Date(last_completed_day).toISOString()) {
+          console.log("Day completed", date);
+          setDayCompleted(true);
+          setIcon('checkmark-done-circle-outline');
+          setIconColor('#00ff00');
+          console.log("Day completed", date);
+        } else if  ( date > new Date(last_completed_day).toISOString()) {
+          setDayCompleted(false);
+          setIcon('ellipse-outline');
+          setIconColor('#e5e5e5');
+        }
       }
 
-    }, [selected_day, last_completed_day]);
+    }, [selected_day, last_completed_day ]);
     const handleCellPress = () => {
       select_day(date);
     };
