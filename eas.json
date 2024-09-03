@@ -24,7 +24,8 @@
         "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "{{ secrets.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY }}",
         "CLERK_SECRET_KEY": "{{ secrets.CLERK_SECRET_KEY }}",
         "SUPABASE_KEY": "{{ secrets.SUPABASE_KEY }}",
-        "EVERY_ORG_API_KEY": "{{ secrets.EVERY_ORG_API_KEY }}"
+        "EVERY_ORG_API_KEY": "{{ secrets.EVERY_ORG_API_KEY }}",
+        "GOOGLE_VISION_API_KEY": "{{ secrets.GOOGLE_VISION_API_KEY }}"
       }
     }
   },

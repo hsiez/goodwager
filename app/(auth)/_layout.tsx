@@ -1,5 +1,5 @@
 import { Tabs, useSegments } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5, FontAwesome6 } from '@expo/vector-icons';
 import { Pressable } from 'react-native';
 import { useAuth } from '@clerk/clerk-expo';
 import { StatusBar } from 'expo-status-bar';
@@ -37,7 +37,7 @@ const TabsPage = () => {
       <Tabs.Screen
         name="wager"
         options={{
-          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <FontAwesome5 name="home" size={size} color={color} />,
           tabBarLabel: 'Home',
         }}
         redirect={!isSignedIn}
@@ -47,7 +47,7 @@ const TabsPage = () => {
       <Tabs.Screen
         name="feed"
         options={{
-          tabBarIcon: ({ color, size }) => <Ionicons name="restaurant-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <FontAwesome6 name="people-pulling" size={size} color={color} />,
           tabBarLabel: 'Feed',
           headerShown: false,
           headerStyle: {
@@ -62,8 +62,8 @@ const TabsPage = () => {
       <Tabs.Screen
         name="profile"
         options={{
-          tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
-          tabBarLabel: 'My Profile',
+          tabBarIcon: ({ color, size }) => <FontAwesome6 name="person" size={size} color={color} />,
+          tabBarLabel: 'Profile',
           headerRight: () => <LogoutButton />,
         }}
         redirect={!isSignedIn}

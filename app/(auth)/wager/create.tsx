@@ -39,7 +39,7 @@ const AmountStepper = ({ amounts, selectedAmount, onAmountChange, type }) => {
       <View className="flex-row space-x-1">
         <TouchableOpacity onPress={decrement} className="">
         <Shadow startColor={'#050505'} distance={2} style={{borderRadius: 8}}>
-              <View style={{borderColor: "#fff"}} className='flex justify-center items-center h-10 w-10 border  rounded-xl'>
+              <View style={{borderColor: "#fff"}} className='flex justify-center items-center h-11 w-11 border  rounded-xl'>
                       <Svg height="100%" width="100%" >
                           <Defs>
                               <RadialGradient id="grad" cx="50%" cy="50%" r="100%" fx="50%" fy="50%">
@@ -58,7 +58,7 @@ const AmountStepper = ({ amounts, selectedAmount, onAmountChange, type }) => {
         </TouchableOpacity>
         <TouchableOpacity onPress={increment} className="">
           <Shadow startColor={'#050505'} distance={2} style={{borderRadius: 8}}>
-              <View style={{borderColor: "#fff"}} className='flex justify-center items-center h-10 w-10 border  rounded-xl'>
+              <View style={{borderColor: "#fff"}} className='flex justify-center items-center h-11 w-11 border  rounded-xl'>
                       <Svg height="100%" width="100%" >
                           <Defs>
                               <RadialGradient id="grad" cx="50%" cy="50%" r="100%" fx="50%" fy="50%">
@@ -213,7 +213,7 @@ const CreateWager = () => {
           {/* Charity info */}
           <View className="flex-col h-fit space-y-4 w-full justify-between items-start">
             <View className="flex-col w-full justify-between items-start ">
-              <Text style={{fontSize: 12}} className="text-neutral-600 font-semibold pb-2">Search Charity</Text>
+              <Text style={{fontSize: 12}} className="text-neutral-600 font-semibold pb-2">Select Charity</Text>
               <View className="flex-row w-full items-center space-x-2">
                 <TextInput
                   className="flex-1 h-10 px-2 text-white bg-neutral-800 rounded"
@@ -235,7 +235,7 @@ const CreateWager = () => {
                   blurOnSubmit={true}
                   onBlur={() => Keyboard.dismiss()}
                 />
-                <TouchableOpacity onPress={submitCharity} className="bg-blue-500 p-2 rounded">
+                <TouchableOpacity onPress={submitCharity} className="bg-green-500 h-10 px-2 rounded justify-center items-center">
                   <Text className="text-white">Submit</Text>
                 </TouchableOpacity>
               </View>

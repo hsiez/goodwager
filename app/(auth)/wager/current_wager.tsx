@@ -31,8 +31,8 @@ const ShimmerButton = ({ title, onPress }) => {
         onPress={onPress}
         className='flex-row px-4 h-8 w-1/3 justify-center items-center rounded-md  bg-green-600 mb-2'
       >
-        <Text style={{ fontSize: 16 }} className="text-neutral-200 mr-2 font-semibold">{title}</Text>
-        <FontAwesome6 name="edit" size={16} color={'#e5e5e5'} />
+        <Text style={{ fontSize: 16 }} className="text-neutral-50 mr-2 font-semibold">{title}</Text>
+        <FontAwesome6 name="edit" size={16} color={'#fafafa'} />
         <ShimmerPlaceholder
           visible={false}
           style={{
@@ -255,7 +255,7 @@ const Wager = () => {
     const abortController = new AbortController();
   
     const fetchAndUpdateWorkouts = async () => {
-      if (!wager.wager_id) return;
+      if (!wager.wager_id || wager.status === 'failed') return;
   
       const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
   

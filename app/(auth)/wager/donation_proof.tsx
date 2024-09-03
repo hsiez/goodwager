@@ -20,6 +20,7 @@ const DonationProof = () => {
     const [verificationError, setVerificationError] = useState(false);
     const [everyOrgMessage, setEveryOrgMessage] = useState('');
     const nav = useRouter();
+    const [relevantDonationFound, setRelevantDonationFound] = useState(false);
 
     const debouncedFetch = debounce((fetchFunction) => {
         fetchFunction();
@@ -85,7 +86,11 @@ const DonationProof = () => {
             const charity_data = await charity_search.json();
 
             const userId = userData.data.user.id;
-            const feedResponse = await fetch(`https://api.www.every.org/api/public/users/${userId}/feed?take=20&skip=0`);
+            const feedResponse = await fetch(`https://api.www.every.org/api/public/users/${userId}/feed?take=20&skip=0`, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+              }
+            });
             const feedData = await feedResponse.json();
 
             if (feedData.data.items.length === 0) {
@@ -95,11 +100,11 @@ const DonationProof = () => {
 
             const relevantDonation = feedData.data.items.find(item => {
                 const donationDate = new Date(item.donationCharge.donation.createdAt);
-                const wagerEndDate = new Date(lastWager.end_date);
-                return item.donationCharge.donation.toNonprofitId === charity_data.data.nonprofit.id &&
-                        donationDate >= wagerEndDate;
+                return item.donationCharge.donation.toNonprofitId === charity_data.data.nonprofit.id && 
+                       (donationDate.getTime() >= new Date(lastWager.last_date_completed).getTime());
             });
 
+            setRelevantDonationFound(!!relevantDonation);
             setEveryOrgMessage(relevantDonation ? 'Donation found' : 'No relevant donations found');
         } catch (error) {
             console.error('Error submitting Every.org username:', error);
@@ -152,7 +157,7 @@ const DonationProof = () => {
 
       // TODO: Replace with your actual API endpoint and key
       const response = await fetch(
-        'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyARDIf7MLlySuRoy3vMSGiczhno69cZ4-4',
+        `https://vision.googleapis.com/v1/images:annotate?key=${process.env.GOOGLE_VISION_API_KEY}`,
         {
           method: 'POST',
           headers: {
@@ -195,7 +200,7 @@ const DonationProof = () => {
       const { data, error } = await supabase
         .from('wagers')
         .update({ donated: true })
-        .eq('id', lastWager.id);
+        .eq('wager_id', lastWager.wager_id);
 
       if (error) throw error;
 
@@ -266,7 +271,7 @@ const DonationProof = () => {
             </TouchableOpacity>
         </View>
         <View className="flex-col w-5/6 h-24 pt-24 items-center justify-end">
-            {isValid && (
+            {(isValid || relevantDonationFound) && (
             <TouchableOpacity
                 className="flex-row bg-green-500 h-12 rounded-3xl w-full items-center justify-center"
                 onPress={handleSubmit}

@@ -1,22 +1,16 @@
-import { View, Text, Pressable, Modal, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { SwipeListView } from 'react-native-swipe-list-view';
-import { useEffect, useState } from 'react';
+import { View, Text, Pressable, Modal, StyleSheet, Image, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { useEffect, useState, useCallback } from 'react';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import { Shadow } from 'react-native-shadow-2';
 import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
 import { Ionicons } from '@expo/vector-icons';
-import { ScrollView } from 'react-native-gesture-handler';
-import UserSearch from '../components/user_search';
-import SearchBar from '../components/search_bar';
 import supabaseClient from '../utils/supabase';
 import { fetchUserFromUsername } from '../utils/clerk_apis';
-import Wager from './wager/current_wager';
-import { useIsFocused } from '@react-navigation/native';
 
 const Profile = () => {
   const { user } = useUser();
   const { signOut, getToken, userId } = useAuth();
-  const isFocused = useIsFocused();
   
   const [firstName, setFirstName] = useState(user.firstName);
   const [lastName, setLastName] = useState(user.lastName);
@@ -26,28 +20,52 @@ const Profile = () => {
   const [modalAddFriendVisible, setModalAddFriendVisible] = useState(false);
   const [selecteUser, setSelectedUser] = useState(null);
   const [isSignOutModalVisible, setIsSignOutModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [followers, setFollowers] = useState([]);
+
+  const fetchWagerData = useCallback(async () => {
+    const token = await getToken({ template: 'supabase' });
+    const supabase = supabaseClient(token);
+    const { data, error } = await supabase
+      .from('wagers')
+      .select('*')
+      .eq('user_id', userId);
+    if (error) {
+      console.error('Error fetching all wagers for profile:', error);
+    }
+    if (data.length > 0) {
+      setAllWagers(data);
+      const failed = data.filter(wager => wager.status === "failed");
+      setAmountDonated(failed.reduce((accumulator, current) => {
+        return accumulator + current.amount;
+      }, 0));
+    }
+  }, [getToken, userId]);
+
+  const fetchFriends = useCallback(async () => {
+    const token = await getToken({ template: 'supabase' });
+    const supabase = supabaseClient(token);
+    const { data, error } = await supabase
+      .from('followers')
+      .select()
+      .eq('follower', userId);
+    if (error) {
+      console.error('Error fetching friends:', error);
+    } else {
+      setFollowers(data || []);
+    }
+  }, [getToken, userId]);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const token = await getToken({ template: 'supabase' });
-      const supabase = supabaseClient(token);
-      const { data, error } = await supabase
-        .from('wagers')
-        .select('*')
-        .eq('user_id', userId);
-      if (error) {
-        console.error('Error fetching all wagers for profile:', error);
-      }
-      if (data.length > 0) {
-        setAllWagers(data);
-        const failed = data.filter(wager => wager.status === "failed");
-        setAmountDonated(failed.reduce((accumulator, current) => {
-          return accumulator + current.amount;
-        }, 0));
-      }
-    };
-    fetchUser();
-  }, [isFocused, userId]);
+      fetchWagerData();
+      fetchFriends();
+    }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([fetchWagerData(), fetchFriends()]);
+    setRefreshing(false);
+  }, [fetchWagerData, fetchFriends]);
 
   const onSaveUser = async () => {
     try {
@@ -101,7 +119,7 @@ const Profile = () => {
       }
       fetchData();
     }
-    , [friend]);
+    , []);
     if (!follower_data) {
       return null;
     }
@@ -147,56 +165,46 @@ const Profile = () => {
   };
 
   const FriendList = () => {
-    // Sample data for the list
-    const [followers, setFollowers] = useState([]);
-  
-    // The delete function
     const onDelete = (friendId) => {
-      // Update the state to remove the friend
-      setFollowers((followers) => followers.filter((friend) => friend.id !== friendId));
-      
-      // If you have a backend to sync with, you would also send a request to delete the friend from the database
+      setFollowers((currentFollowers) => currentFollowers.filter((friend) => friend.id !== friendId));
     };
 
-    useEffect(() => {
-      // Fetch the friends from the database
-      async function fetchFriends() {
-        const token = await getToken({ template: 'supabase' });
-        const supabase = supabaseClient(token);
-        const { data, error } = await supabase
-          .from('followers')
-          .select()
-          .eq('follower', userId);
-        setFollowers(data);
-      }
-      fetchFriends();
-    }
-    , [userId]);
-
-    if (followers.length === 0) {
+    if (followers.length === 0 && !refreshing) {
       return (
-        <View style={{minWidth: '100%', backgroundColor: '#0D0D0D'}} className='flex-row w-full h-3/5 justify-center items-center border rounded-xl border-neutral-800' />
+        <View style={{minWidth: '100%', backgroundColor: '#0D0D0D'}} className='flex-row w-full h-3/5 justify-center items-center border rounded-xl border-neutral-800'>
+          <Text style={{color: '#d4d4d4'}}>No friends yet</Text>
+        </View>
       );
     }
+
+    if (refreshing) {
+      return (
+        <View style={{minWidth: '100%', backgroundColor: '#0D0D0D'}} className='flex-row w-full h-3/5 justify-center items-start pt-10 border rounded-xl border-neutral-800'>
+          <Text style={{color: '#404040'}}>Loading...</Text>
+        </View>
+      );
+    }
+
     return (
       <View className='flex-row w-full h-3/5 justify-center items-center'>
         <Shadow startColor={'#050505'} distance={2} style={{borderRadius:12}}>
-          {followers.length === 0 ? (
-            <View style={{minWidth: '100%', backgroundColor: '#0D0D0D'}} className='flex-1 justify-center items-center border rounded-xl border-neutral-800'>
-              <Text className="text-neutral-400">No Friends Yet...</Text>
-            </View>
-          ) : (
-            <ScrollView 
-              showsVerticalScrollIndicator={false} 
-              contentContainerStyle={{alignItems: 'center', paddingBottom:5}} 
-              className='flex-1 pb-0.5 px-1 w-full h-full border rounded-xl border-neutral-800'
-              style={{minWidth: '100%', backgroundColor: '#0D0D0D'}}
-            >
-              {followers.map((follower) => (
-                <FriendItem key={follower.followee} friend={follower} onDelete={onDelete} />
-              ))}
-            </ScrollView>
-          )}
+          <ScrollView 
+            showsVerticalScrollIndicator={false} 
+            contentContainerStyle={{alignItems: 'center', paddingBottom:5}} 
+            className='flex-1 pb-0.5 px-1 w-full h-full border rounded-xl border-neutral-800'
+            style={{minWidth: '100%', backgroundColor: '#0D0D0D'}}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor="#d4d4d4" // Color of the refresh indicator
+              />
+            }
+          >
+            {followers.map((follower) => (
+              <FriendItem key={follower.followee} friend={follower} onDelete={onDelete} />
+            ))}
+          </ScrollView>
         </Shadow>
       </View>
     );
