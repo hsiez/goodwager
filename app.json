@@ -29,7 +29,7 @@
         "com.apple.developer.healthkit": true
       },
       "bundleIdentifier": "com.harleysiezar.goodwager",
-      "buildNumber": "11"
+      "buildNumber": "13"
     },
     "icon": "./app/assets/images/icon.png",
     "orientation": "portrait"

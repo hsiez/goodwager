@@ -48,7 +48,7 @@ const TabsPage = () => {
         name="feed"
         options={{
           tabBarIcon: ({ color, size }) => <FontAwesome6 name="people-pulling" size={size} color={color} />,
-          tabBarLabel: 'Feed',
+          tabBarLabel: 'Friends',
           headerShown: false,
           headerStyle: {
             backgroundColor: "#090909", // Correct property for background color

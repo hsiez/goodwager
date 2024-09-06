@@ -68,7 +68,7 @@ const WagerCalendar = ({ start_date, select_day, selected_day, last_completed_da
         setWorkoutDay([Math.floor(data.challengeDay / 10), data.challengeDay % 10]);
       }
 
-      if (date > today || wagerActive === false) {
+      if (date > today || wager_status !== "ongoing") {
         return;
       }
       if (date <= today) {

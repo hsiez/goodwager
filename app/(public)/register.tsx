@@ -40,16 +40,12 @@ const Register = () => {
         username,
       });
       if (completeSignUp.createdSessionId) {
-        setActive({ session: completeSignUp.createdSessionId });
-        router.push("/(auth)/wager");
+        await setActive({ session: completeSignUp.createdSessionId });
+        router.replace("/(auth)/wager");
       }
     } catch (err: any) {
       console.error("Error setting username", err);
-      if (err.errors && err.errors[0].message) {
-        setErrorMessage(err.errors[0].message);
-      } else {
-        setErrorMessage("An error occurred while setting the username.");
-      }
+      setErrorMessage(err.errors?.[0]?.message || "An error occurred while setting the username.");
     } finally {
       setLoading(false);
     }

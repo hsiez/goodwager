@@ -250,6 +250,16 @@ const FollowerCard = ({follower}: {follower}) => {
           emoji: '‼️',
           title: 'Do it!',
         },
+        {
+          id: 6,
+          emoji: '💵',
+          title: 'Donate',
+        },
+        {
+          id: 7,
+          emoji: '🤑',
+          title: 'pay-up',
+        },
       ];
     
 
@@ -335,7 +345,7 @@ const FollowerCard = ({follower}: {follower}) => {
                                 // Add more logic here if needed
                             }}
                             showPopupType="onPress"
-                            cardStyle={{backgroundColor: '#404040', shadowOffset: {width: 0, height: 0}}}
+                            cardStyle={{backgroundColor: '#262626', shadowOffset: {width: 0, height: 0}}}
                             iconSize={20}
                         >   
                             <View className='rounded-full item-center justify-center mr-1'>

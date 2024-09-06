@@ -84,6 +84,7 @@ const DonationProof = () => {
 
             const charity_search = await fetch(`https://partners.every.org/v0.2/nonprofit/${lastWager.charity_ein}?apiKey=${process.env.EVERY_ORG_API_KEY}`);
             const charity_data = await charity_search.json();
+            console.log("charity_data", charity_data);
 
             const userId = userData.data.user.id;
             const feedResponse = await fetch(`https://api.www.every.org/api/public/users/${userId}/feed?take=20&skip=0`, {

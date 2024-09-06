@@ -1,8 +1,8 @@
 import { useOAuth, useSignIn } from '@clerk/clerk-expo';
 import { Link, useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { View, TouchableOpacity, Text, TextInput, KeyboardAvoidingView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useEffect } from 'react';
+import { View, TouchableOpacity, Text, TextInput, KeyboardAvoidingView, Animated } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';;
 
 const Login = () => {
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
@@ -17,10 +17,13 @@ const Login = () => {
   const onGooglePress = async () => {
     try {
       setLoading(true);
-      const { createdSessionId } = await startOAuthFlow();
+      const { createdSessionId, signIn, signUp } = await startOAuthFlow();
+      
       if (createdSessionId) {
-        setActive({ session: createdSessionId });
-        router.push("/(auth)/wager");
+        await setActive({ session: createdSessionId });
+        router.replace("/(auth)/wager");
+      } else {
+        console.log("No session created");
       }
     } catch (err) {
       console.error("OAuth error", err);
@@ -49,10 +52,38 @@ const Login = () => {
     }
   };
 
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [slideAnim] = useState(new Animated.Value(50));
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
   return (
     <View className="flex-1 justify-center p-5 bg-[#090909]">
-      
       <View className="flex-col w-full justify-center items-center space-y-6">
+        <Animated.View 
+          className=" items-center"
+          style={{
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          }}
+        >
+          <Text className="text-3xl font-bold text-neutral-200">Welcome to goodwager</Text>
+          <Text className="text-lg text-green-500 italic">Ante Up</Text>
+        </Animated.View>
+
         <KeyboardAvoidingView behavior="padding" enabled className="flex-col w-full justify-center items-center space-y-2">
           <TextInput
             className="bg-neutral-800 w-full p-3 rounded-full text-neutral-300"

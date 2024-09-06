@@ -6,8 +6,6 @@ import { useAuth, useUser } from '@clerk/clerk-expo';
 import supabaseClient from '../utils/supabase';
 import { useIsFocused } from '@react-navigation/native';
 import Svg, { Defs, RadialGradient, Stop, Circle, Rect, Line } from "react-native-svg";
-import * as SecureStore from 'expo-secure-store';
-import CornerBorder from './corner_border';
 import { Activity_Colors, Activities } from '../utils/activity_map';
 
 
@@ -160,7 +158,9 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
             <View className="flex-1 items-center">
                 <View className="flex-row justify-between mt-1 w-full">
                     <Text style={{ fontSize: 12 }} className="text-neutral-400">0 mins</Text>
-                    <Text style={{ fontSize: 12 }} className="text-neutral-400">{maxDuration}</Text>
+                    {maxDuration > 0 && (
+                        <Text style={{ fontSize: 12 }} className="text-neutral-400">{maxDuration}</Text>
+                    )}
                 </View>
 
                 <Svg width={barWidth} height={verticalLineHeight}>
@@ -171,18 +171,22 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
                         height={barHeight}
                         fill="#2D2D2D"
                     />
-                    {segments.map(segment => React.cloneElement(segment, {
-                        y: (verticalLineHeight - barHeight) / 2
-                    }))}
-                    <Line
-                        x1={sixtyMinuteMark}
-                        y1={0}
-                        x2={sixtyMinuteMark}
-                        y2={verticalLineHeight}
-                        stroke="#FFFFFF"
-                        strokeWidth="1"
-                        strokeDasharray="4,4"
-                    />
+                    {totalDuration > 0 && (
+                        <>
+                            {segments.map(segment => React.cloneElement(segment, {
+                                y: (verticalLineHeight - barHeight) / 2
+                            }))}
+                            <Line
+                                x1={sixtyMinuteMark}
+                                y1={0}
+                                x2={sixtyMinuteMark}
+                                y2={verticalLineHeight}
+                                stroke="#FFFFFF"
+                                strokeWidth="1"
+                                strokeDasharray="4,4"
+                            />
+                        </>
+                    )}
                 </Svg>
 
                 <View className="flex-row flex-wrap min-w-full justify-start items-center mt-2">
@@ -206,7 +210,7 @@ const TodayStatus = ({ wager_id, wager_status, start_date, selected_day, workout
 
     return (
         <View className="flex h-full w-full justify-center items-center">
-            <View className='flex w-5/6 rounded-xl justify-center relative'>
+            <View className="flex w-5/6 rounded-xl justify-center relative">
                 <View className="flex-col min-h-full min-w-full justify-center items-center">
                     <View className="flex-row w-full h-fit justify-start items-center pl-4">
                         <View className="flex w-fit h-fit px-2 py-0.5 justify-center items-center rounded-t-lg bg-neutral-700">

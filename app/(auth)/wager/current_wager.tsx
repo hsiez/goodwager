@@ -29,7 +29,7 @@ const ShimmerButton = ({ title, onPress }) => {
     <Link href="/wager/create" asChild>
       <TouchableOpacity
         onPress={onPress}
-        className='flex-row px-4 h-8 w-1/3 justify-center items-center rounded-md  bg-green-600 mb-2'
+        className='flex-row px-4 h-7 w-1/3 justify-center items-center rounded-md  bg-green-600 mb-2'
       >
         <Text style={{ fontSize: 16 }} className="text-neutral-50 mr-2 font-semibold">{title}</Text>
         <FontAwesome6 name="edit" size={16} color={'#fafafa'} />
@@ -145,10 +145,9 @@ const WagerInfo = ({ latest_wager, hasActiveWager }) => {
       );
     }
 
-    if (latest_wager.status === 'failed' && latest_wager.donated) {
+    if (latest_wager.status === 'failed' || latest_wager.status === null) {
       return <ShimmerButton title="New Wager" onPress={() => {}} />;
     }
-
     return null;
   }
 }
@@ -157,7 +156,7 @@ const WagerInfo = ({ latest_wager, hasActiveWager }) => {
 const Wager = () => {
   const isFocused = useIsFocused();
   const [hasActiveWager, setHasActiveWager] = useState(false);
-  const [wager, setWager] = useState({ wager_id: null, user_id: null, start_date: null, end_date: null, status: null, charity_id: null, amount: 0, last_date_completed: null, workout_duration: 30, charity_name: null, charity_ein: null, donated: null});
+  const [wager, setWager] = useState({ wager_id: null, user_id: null, start_date: null, end_date: null, status: null, charity_id: null, amount: 0, last_date_completed: null, workout_duration: 0, charity_name: null, charity_ein: null, donated: null});
   const [loading, setLoading] = useState(true);
   const { getToken } = useAuth();
   const { user } = useUser();
@@ -169,9 +168,12 @@ const Wager = () => {
 
   function handleHealthData(date: string): Promise<any[]> {
     return new Promise((resolve, reject) => {
+      console.log('handleHealthData called with date:', date);
       if (healthKitAvailable) {
+        console.log('HealthKit is available');
         const end_date = new Date(date);
         end_date.setDate(end_date.getDate() + 1);
+        console.log('Querying HealthKit from', date, 'to', end_date.toISOString());
         AppleHealthKit.getSamples(
           {
             startDate: date,
@@ -180,14 +182,16 @@ const Wager = () => {
           },
           (err, results) => {
             if (err) {
-              console.log('error', err);
+              console.log('HealthKit error:', err);
               reject(err);
             } else {
+              console.log('HealthKit results:', results);
               resolve(results);
             }
           }
         );
       } else {
+        console.log('HealthKit is not available');
         resolve([]);
       }
     });
@@ -255,7 +259,10 @@ const Wager = () => {
     const abortController = new AbortController();
   
     const fetchAndUpdateWorkouts = async () => {
-      if (!wager.wager_id || wager.status === 'failed') return;
+      if (!wager.wager_id || wager.status === 'failed') {
+        console.log('No active wager or wager failed, skipping workout fetch');
+        return;
+      }
   
       const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
   
@@ -271,11 +278,15 @@ const Wager = () => {
           .eq('wager_id', wager.wager_id)
           .eq('date', today)
           .abortSignal(abortController.signal);
-  
+
         if (supabaseError) throw supabaseError;
   
+        console.log('Supabase workouts:', supabaseWorkouts);
+  
         // Fetch workouts from HealthKit
+        console.log('Calling handleHealthData');
         const healthKitWorkouts = await handleHealthData(today);
+        console.log('HealthKit workouts:', healthKitWorkouts);
   
         // Compare and find new workouts
         const newWorkouts = healthKitWorkouts.filter(hkWorkout => {
@@ -323,6 +334,7 @@ const Wager = () => {
     };
   
     if (wager.status !== "failed" && user) {
+      console.log('Calling fetchAndUpdateWorkouts');
       fetchAndUpdateWorkouts();
     }
   

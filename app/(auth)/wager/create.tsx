@@ -94,7 +94,7 @@ const CreateWager = () => {
 
     // State for duration amount
     const [selectedDuration, setSelectedDuration] = useState(60);
-    const durations = [30, 60, 90];
+    const durations = [15, 30, 60, 90];
 
   // State for charity selection
   const [charityEIN, setCharityEIN] = useState('');
